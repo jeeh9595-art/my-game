@@ -125,6 +125,27 @@
     .search input{width:100px}
     .coin{display:none}
   }
+  /* 인기 검색 TOP 10 세로 박스 */
+  .games-layout{display:flex; gap:22px; align-items:flex-start}
+  .games-layout .grid{flex:1; min-width:0}
+  .ranks{flex:none; width:262px; background:var(--panel); border:2px solid var(--magenta);
+    box-shadow:0 0 16px rgba(255,47,176,.25); position:sticky; top:78px}
+  .ranks h3{font-family:'Press Start 2P',monospace; font-size:11px; color:var(--magenta);
+    text-shadow:0 0 6px rgba(255,47,176,.6); padding:14px 12px 11px; line-height:1.4;
+    border-bottom:2px solid rgba(255,47,176,.35); display:flex; align-items:center; gap:6px}
+  .ranks ol{list-style:none; margin:0; padding:8px 6px}
+  .ranks li{display:flex; align-items:center; gap:10px; padding:9px 8px; border-radius:8px;
+    cursor:pointer; font-size:14px; color:#dfe0f0}
+  .ranks li:hover{background:rgba(40,230,255,.10)}
+  .ranks .rk{font-family:'Press Start 2P',monospace; font-size:11px; width:24px; text-align:center; color:var(--dim); flex:none}
+  .ranks li:nth-child(1) .rk{color:var(--yellow); text-shadow:0 0 6px rgba(255,226,61,.6)}
+  .ranks li:nth-child(2) .rk{color:#dfe6ff}
+  .ranks li:nth-child(3) .rk{color:#ff9ec7}
+  .ranks .nm{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .ranks .bd{font-size:9px; font-weight:800; padding:2px 6px; border-radius:5px; flex:none}
+  .ranks .bd.hot{color:#fff; background:#ff3b5c}
+  .ranks .bd.new{color:#063; background:var(--green)}
+  @media(max-width:900px){.games-layout{flex-direction:column} .ranks{width:100%; position:static}}
 </style>
 </head>
 <body id="top">
@@ -158,6 +179,7 @@
 
   <section class="wrap games" id="games">
     <div class="sec px">▚ SELECT GAME</div>
+    <div class="games-layout">
     <div class="grid" id="grid">
 
       <div class="card" data-name="1분 눈치게임 순발력">
@@ -225,6 +247,24 @@
 
       <div class="noresult px" id="noresult">NO RESULTS :(</div>
     </div>
+
+    <aside class="ranks">
+      <h3>🔥 인기 검색 TOP 10</h3>
+      <ol>
+        <li onclick="pickRank('눈치')"><span class="rk">1</span><span class="nm">1분 눈치게임</span><span class="bd hot">HOT</span></li>
+        <li onclick="pickRank('두더지')"><span class="rk">2</span><span class="nm">두더지 잡기</span><span class="bd hot">HOT</span></li>
+        <li onclick="pickRank('반응')"><span class="rk">3</span><span class="nm">반응속도 테스트</span></li>
+        <li onclick="pickRank('2048')"><span class="rk">4</span><span class="nm">2048</span><span class="bd new">NEW</span></li>
+        <li onclick="pickRank('STOP')"><span class="rk">5</span><span class="nm">10초 STOP!</span></li>
+        <li onclick="pickRank('기억력')"><span class="rk">6</span><span class="nm">기억력 카드 뒤집기</span><span class="bd new">NEW</span></li>
+        <li onclick="pickRank('지뢰')"><span class="rk">7</span><span class="nm">지뢰찾기</span></li>
+        <li onclick="pickRank('순발력')"><span class="rk">8</span><span class="nm">순발력 게임</span></li>
+        <li onclick="pickRank('퍼즐')"><span class="rk">9</span><span class="nm">퍼즐 게임</span></li>
+        <li onclick="pickRank('')"><span class="rk">10</span><span class="nm">무료 미니게임</span></li>
+      </ol>
+    </aside>
+
+    </div>
   </section>
 
   <section class="wrap" id="about" style="padding:10px 0 44px; color:var(--dim); font-size:15px; line-height:1.8">
@@ -286,6 +326,11 @@
       }
     })();
 
+    function pickRank(term){
+      var q=document.getElementById('q');
+      q.value=term; filterGames();
+      document.getElementById('games').scrollIntoView({behavior:'smooth',block:'start'});
+    }
     function filterGames(){
       var q = document.getElementById('q').value.trim().toLowerCase();
       var cards = document.querySelectorAll('#grid .card');
