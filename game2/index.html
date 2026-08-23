@@ -37,8 +37,10 @@ body{margin:0;background:#f4f4f2;color:#202329;font-family:Arial,"Noto Sans KR",
  font-family:'DungGeunMo',monospace;font-size:15px}
 .topbar .search input::placeholder{color:#6a6a9a}
 @media(max-width:720px){.topbar .menu{display:none}.topbar .coin{display:none}.topbar .search input{width:110px}}
-.container{max-width:1050px;margin:0 auto;padding:25px 18px 50px}
-.ad{height:74px;border:1px solid #dedfe3;background:#fff;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;margin-bottom:20px}
+.pagewrap{display:flex;justify-content:center;align-items:flex-start;gap:20px;max-width:1400px;margin:0 auto;padding:25px 18px}
+.sidead{flex:none;width:160px;min-height:600px;border:1px solid #dedfe3;background:#fff;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;position:sticky;top:84px;writing-mode:vertical-rl;letter-spacing:4px}
+.container{max-width:1050px;flex:1;min-width:0;padding:0 0 50px}
+@media(max-width:1100px){.sidead{display:none}.pagewrap{padding:16px 10px}}
 .content{background:#fff;border:1px solid #dedfe3}
 .title{padding:20px 24px;border-bottom:1px solid #e5e5e5}
 .title h1{font-size:22px;margin:0 0 7px;font-weight:750;letter-spacing:-.5px}
@@ -60,7 +62,7 @@ button:hover{background:#303852}
 .final-result{display:none;margin-top:20px;background:#20263a;color:white;padding:24px;text-align:center}.final-result.show{display:block}.final-result .label{font-size:12px;color:#b8becb}.final-result .number{font-size:38px;font-weight:800;margin-top:6px}.description{margin-top:20px;background:#fff;border:1px solid #dedfe3;padding:22px 24px}
 .description h2{font-size:16px;margin:0 0 12px}.description p{margin:6px 0;color:#666;font-size:13px;line-height:1.7}
 footer{height:110px;background:#10182d;color:#9299aa;padding:28px 34px;font-size:12px}
-@media(max-width:700px){.container{padding:16px 10px 35px}.play{padding:14px}#target{height:300px}.stats{grid-template-columns:1fr}.stat{border-right:0;border-bottom:1px solid #e5e5e5}.stat:last-child{border-bottom:0}}
+@media(max-width:700px){.container{padding:0 0 35px}.play{padding:14px}#target{height:300px}.stats{grid-template-columns:1fr}.stat{border-right:0;border-bottom:1px solid #e5e5e5}.stat:last-child{border-bottom:0}}
 </style>
 </head>
 <body>
@@ -73,8 +75,9 @@ footer{height:110px;background:#10182d;color:#9299aa;padding:28px 34px;font-size
  </div>
 </header>
 
+<div class="pagewrap">
+<aside class="sidead">광고 영역</aside>
 <main class="container">
-  <div class="ad">광고 영역</div>
 
   <section class="content">
     <div class="title">
@@ -113,6 +116,8 @@ footer{height:110px;background:#10182d;color:#9299aa;padding:28px 34px;font-size
     <p>총 5회의 기록을 측정하고 평균 반응속도를 확인합니다.</p>
   </section>
 </main>
+<aside class="sidead">광고 영역</aside>
+</div>
 
 <footer>TinyPlay　|　간단하게 즐기는 미니게임</footer>
 
