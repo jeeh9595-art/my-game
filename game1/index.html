@@ -4,7 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>1分 目利きゲーム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
+@font-face{
+ font-family:'DungGeunMo';
+ src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff') format('woff');
+ font-display:swap;
+}
 *{box-sizing:border-box}
 :root{
  --ink:#25221f; --paper:#fbf7ed; --grid:#e8e1d5; --pink:#f6a4a6;
@@ -13,15 +21,15 @@
 body{
  margin:0;min-height:100vh;background:#e7dfd2;color:var(--ink);
  font-family:"Comic Sans MS","Trebuchet MS","Yu Gothic",sans-serif;
- display:flex;align-items:center;justify-content:center;padding:18px;
 }
 .game{
  width:min(1500px,98vw);min-height:900px;background:var(--paper);
  border:4px solid var(--ink);border-radius:24px;padding:28px 30px 20px;
  box-shadow:0 8px 0 rgba(37,34,31,.14);
  position:relative;overflow:hidden;
- zoom:.82;
+ zoom:.82;margin:18px auto;
 }
+.gamearea{padding:0 18px 18px}
 .game:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.25;
  background:repeating-linear-gradient(0deg,transparent 0,transparent 5px,rgba(120,100,80,.025) 6px)}
 .top{display:grid;grid-template-columns:330px 1fr 150px;align-items:center;gap:20px;height:125px}
@@ -113,9 +121,42 @@ body{
  .panel{padding:12px}.panel h3{font-size:19px}.score{font-size:38px}.best,.level{font-size:28px}.combo{font-size:32px}
  .hint{font-size:15px;padding:9px}.cardNum{width:68px;height:68px;font-size:28px}
 }
+
+/* ===== 공통 헤더 (메인화면과 동일) ===== */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(7,7,15,.95);border-bottom:2px solid #28e6ff;
+ box-shadow:0 0 14px rgba(40,230,255,.35);font-family:'DungGeunMo','Press Start 2P',monospace}
+.topbar .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+.topbar .nav{display:flex;align-items:center;gap:20px;padding:14px 0}
+.topbar a{text-decoration:none}
+.topbar .logo{display:inline-block;font-family:'Press Start 2P',monospace;font-size:17px;color:#28e6ff;
+ text-shadow:0 0 5px #28e6ff,0 0 14px rgba(40,230,255,.7)}
+.topbar .logo .p2{color:#ff2fb0;text-shadow:0 0 5px #ff2fb0,0 0 14px rgba(255,47,176,.7)}
+.topbar .menu{display:flex;gap:8px;margin-left:8px}
+.topbar .menu a{font-size:13px;padding:7px 12px;border:2px solid #2a2a4d;color:#8f8fc0}
+.topbar .menu a:hover{border-color:#ffe23d;color:#ffe23d;text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .coin{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:10px;color:#ffe23d;
+ display:flex;align-items:center;gap:8px}
+.topbar .coin .inf{text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .search{display:flex;align-items:center;gap:8px;background:#0a0a18;border:2px solid #ff2fb0;
+ padding:8px 12px;color:#ff2fb0}
+.topbar .search input{border:0;background:transparent;color:#fff;outline:none;width:150px;
+ font-family:'DungGeunMo',monospace;font-size:15px}
+.topbar .search input::placeholder{color:#6a6a9a}
+@media(max-width:720px){.topbar .menu{display:none}.topbar .coin{display:none}.topbar .search input{width:110px}}
 </style>
 </head>
 <body>
+
+<header class="topbar">
+ <div class="wrap nav">
+  <a class="logo" href="../">TINY<span class="p2">PLAY</span></a>
+  <div class="menu"><a href="../">홈</a><a href="../#games">게임</a><a href="../#about">소개</a></div>
+  <div class="coin">🪙 CREDIT&nbsp;<span class="inf">∞</span></div>
+  <div class="search">🔎<input id="q" placeholder="게임 검색..." onkeydown="if(event.key==='Enter')location.href='../#games'"></div>
+ </div>
+</header>
+
+<div class="gamearea">
 <div class="game">
  <div class="top">
   <div class="title">1分 目利きゲーム</div>
@@ -156,6 +197,7 @@ body{
    <button class="restart" id="restart">もう一度 ↻</button>
   </aside>
  </div>
+</div>
 </div>
 
 
