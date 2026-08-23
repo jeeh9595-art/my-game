@@ -63,7 +63,7 @@ body{margin:0;background:#f4f4f2;color:#202329;font-family:Arial,"Noto Sans KR",
 .g2048 .cell,.g2048 .tile{position:absolute;border-radius:8px;display:flex;align-items:center;justify-content:center}
 .g2048 .cell{background:rgba(255,255,255,.05)}
 .g2048 .tile{font-weight:800;color:#fff;transition:left .12s ease,top .12s ease;
- font-family:Arial,sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+ font-family:'Press Start 2P',monospace;line-height:1;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,.35)}
 .g2048 .tile.pop{animation:g2048pop .16s ease}
 .g2048 .tile.merged{animation:g2048merge .18s ease}
 @keyframes g2048pop{0%{transform:scale(0)}100%{transform:scale(1)}}
@@ -194,11 +194,12 @@ body{background:#0e0c1a!important;color:#eaeaff!important}
     el.style.top=(g+r*(s+g))+'%';
   }
   function fontFor(v){
+    // 타일 크기 대비 배율 (픽셀 폰트가 넓어서 자릿수 많을수록 축소)
     const len=String(v).length;
-    if(len<=2)return '46%';
-    if(len===3)return '36%';
-    if(len===4)return '28%';
-    return '22%';
+    if(len<=2)return 0.40;
+    if(len===3)return 0.27;
+    if(len===4)return 0.20;
+    return 0.16;
   }
 
   function empties(){
@@ -230,7 +231,8 @@ body{background:#0e0c1a!important;color:#eaeaff!important}
     el.style.top=(g+t.r*(s+g))+'%';
     el.style.background=pair[0];
     el.style.color=pair[1];
-    el.style.fontSize=fontFor(t.v);
+    const tilePx=(grid.clientWidth||440)*s/100;
+    el.style.fontSize=Math.round(tilePx*fontFor(t.v))+'px';
     if(t.v>=128)el.style.boxShadow='0 0 14px '+pair[0]+',0 3px 10px rgba(0,0,0,.35)';
     else el.style.boxShadow='0 3px 10px rgba(0,0,0,.35)';
     el.textContent=t.v;
