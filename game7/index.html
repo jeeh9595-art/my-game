@@ -55,12 +55,12 @@ body{background:linear-gradient(#bfe6ff,#d8f2c2);min-height:100vh;color:#3a2f1a;
 .slot{position:relative;height:170px;overflow:hidden;cursor:url('assets/hammer.png') 40 10, pointer}
 .slot .holeimg{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:96%;z-index:1;pointer-events:none;
   filter:drop-shadow(0 3px 4px rgba(0,0,0,.3))}
-.slot .mole{position:absolute;left:50%;bottom:22%;width:74%;z-index:2;
-  transform:translate(-50%,150%);transition:transform .14s ease-out;pointer-events:none;
+.slot .mole{position:absolute;left:50%;bottom:20%;height:62%;width:auto;z-index:2;
+  transform:translate(-50%,155%);transition:transform .14s ease-out;pointer-events:none;
   filter:drop-shadow(0 3px 5px rgba(0,0,0,.35))}
 .slot.up .mole{transform:translate(-50%,0)}
 .slot.hit .mole{transform:translate(-50%,0) scale(.82)}
-.whack{position:absolute;left:52%;top:-6%;width:70%;z-index:5;pointer-events:none;transform-origin:80% 80%;
+.whack{position:absolute;left:50%;top:14%;width:52%;z-index:5;pointer-events:none;transform-origin:80% 90%;
   animation:whack .25s ease-out}
 @keyframes whack{0%{transform:rotate(-46deg) scale(.9);opacity:0}35%{transform:rotate(6deg) scale(1);opacity:1}100%{transform:rotate(-8deg);opacity:0}}
 
