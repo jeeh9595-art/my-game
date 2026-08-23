@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TinyPlay - 반응속도 테스트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+@font-face{
+ font-family:'DungGeunMo';
+ src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff') format('woff');
+ font-display:swap;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f4f2;color:#202329;font-family:Arial,"Noto Sans KR",sans-serif}
+
+/* ===== 공통 헤더 (메인화면과 동일) ===== */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(7,7,15,.95);border-bottom:2px solid #28e6ff;
+ box-shadow:0 0 14px rgba(40,230,255,.35);font-family:'DungGeunMo','Press Start 2P',monospace}
+.topbar .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+.topbar .nav{display:flex;align-items:center;gap:20px;padding:14px 0}
+.topbar a{text-decoration:none}
+.topbar .logo{display:inline-block;font-family:'Press Start 2P',monospace;font-size:17px;color:#28e6ff;
+ text-shadow:0 0 5px #28e6ff,0 0 14px rgba(40,230,255,.7)}
+.topbar .logo .p2{color:#ff2fb0;text-shadow:0 0 5px #ff2fb0,0 0 14px rgba(255,47,176,.7)}
+.topbar .menu{display:flex;gap:8px;margin-left:8px}
+.topbar .menu a{font-size:13px;padding:7px 12px;border:2px solid #2a2a4d;color:#8f8fc0}
+.topbar .menu a:hover{border-color:#ffe23d;color:#ffe23d;text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .coin{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:10px;color:#ffe23d;
+ display:flex;align-items:center;gap:8px}
+.topbar .coin .inf{text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .search{display:flex;align-items:center;gap:8px;background:#0a0a18;border:2px solid #ff2fb0;
+ padding:8px 12px;color:#ff2fb0}
+.topbar .search input{border:0;background:transparent;color:#fff;outline:none;width:150px;
+ font-family:'DungGeunMo',monospace;font-size:15px}
+.topbar .search input::placeholder{color:#6a6a9a}
+@media(max-width:720px){.topbar .menu{display:none}.topbar .coin{display:none}.topbar .search input{width:110px}}
+.container{max-width:1050px;margin:0 auto;padding:25px 18px 50px}
+.ad{height:74px;border:1px solid #dedfe3;background:#fff;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;margin-bottom:20px}
+.content{background:#fff;border:1px solid #dedfe3}
+.title{padding:20px 24px;border-bottom:1px solid #e5e5e5}
+.title h1{font-size:22px;margin:0 0 7px;font-weight:750;letter-spacing:-.5px}
+.title p{margin:0;color:#777;font-size:13px}
+.play{padding:24px}
+.bar{height:42px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e7e7e7;margin-bottom:20px;font-size:13px;color:#666}
+.bar strong{color:#222}
+#target{height:380px;background:#eee;border:1px solid #d8d8d8;display:flex;align-items:center;justify-content:center;color:#333;font-size:20px;font-weight:700;cursor:pointer;user-select:none}
+#target.wait{background:#e5bd43;color:#202329;border-color:#d3aa35}
+#target.ready{background:#4caf62;color:white;border-color:#4caf62}
+#target.fail{background:#d85c65;color:white;border-color:#d85c65}
+.help{text-align:center;height:45px;padding-top:14px;color:#777;font-size:12px}
+.actions{text-align:center;padding-top:8px}
+button{background:#20263a;color:white;border:0;padding:10px 22px;font-size:13px;cursor:pointer}
+button:hover{background:#303852}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #e5e5e5;margin-top:24px}
+.stat{padding:16px;text-align:center;border-right:1px solid #e5e5e5}
+.stat:last-child{border-right:0}.stat span{display:block;color:#888;font-size:11px;margin-bottom:6px}.stat b{font-size:18px;font-weight:700}
+.final-result{display:none;margin-top:20px;background:#20263a;color:white;padding:24px;text-align:center}.final-result.show{display:block}.final-result .label{font-size:12px;color:#b8becb}.final-result .number{font-size:38px;font-weight:800;margin-top:6px}.description{margin-top:20px;background:#fff;border:1px solid #dedfe3;padding:22px 24px}
+.description h2{font-size:16px;margin:0 0 12px}.description p{margin:6px 0;color:#666;font-size:13px;line-height:1.7}
+footer{height:110px;background:#10182d;color:#9299aa;padding:28px 34px;font-size:12px}
+@media(max-width:700px){.container{padding:16px 10px 35px}.play{padding:14px}#target{height:300px}.stats{grid-template-columns:1fr}.stat{border-right:0;border-bottom:1px solid #e5e5e5}.stat:last-child{border-bottom:0}}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="wrap nav">
+  <a class="logo" href="../">TINY<span class="p2">PLAY</span></a>
+  <div class="menu"><a href="../">홈</a><a href="../#games">게임</a><a href="../#about">소개</a></div>
+  <div class="coin">🪙 CREDIT&nbsp;<span class="inf">∞</span></div>
+  <div class="search">🔎<input id="q" placeholder="게임 검색..." onkeydown="if(event.key==='Enter')location.href='../#games'"></div>
+ </div>
+</header>
+
+<main class="container">
+  <div class="ad">광고 영역</div>
+
+  <section class="content">
+    <div class="title">
+      <h1>반응속도 테스트</h1>
+      <p>화면이 초록색으로 바뀌는 순간 클릭하세요.</p>
+    </div>
+
+    <div class="play">
+      <div class="bar">
+        <span>ROUND <strong id="round">0 / 5</strong></span>
+        <span>AVERAGE <strong id="avg">-</strong></span>
+      </div>
+
+      <div id="target">START</div>
+      <div class="help" id="help">시작 버튼을 누르면 테스트가 시작됩니다.</div>
+      <div class="actions"><button onclick="startGame()">다시 시작</button></div>
+
+      <div class="stats">
+        <div class="stat"><span>최근 기록</span><b id="last">-</b></div>
+        <div class="stat"><span>5회 평균</span><b id="average">-</b></div>
+        <div class="stat"><span>최고 기록</span><b id="best">-</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="finalResult" class="final-result">
+    <div class="label">5회 평균 반응속도</div>
+    <div class="number" id="finalAverage">-</div>
+    <div style="font-size:12px;color:#b8becb;margin-top:8px">테스트 완료</div>
+  </section>
+
+  <section class="description">
+    <h2>게임 방법</h2>
+    <p>START를 누른 뒤 기다립니다.</p>
+    <p>화면이 초록색으로 바뀌면 최대한 빠르게 클릭합니다.</p>
+    <p>총 5회의 기록을 측정하고 평균 반응속도를 확인합니다.</p>
+  </section>
+</main>
+
+<footer>TinyPlay　|　간단하게 즐기는 미니게임</footer>
+
+<script>
+const target=document.getElementById("target");
+const roundEl=document.getElementById("round"),avgEl=document.getElementById("avg");
+const lastEl=document.getElementById("last"),averageEl=document.getElementById("average"),bestEl=document.getElementById("best");
+const help=document.getElementById("help");
+const finalResult=document.getElementById("finalResult"),finalAverage=document.getElementById("finalAverage");
+
+let round=0,times=[],state="idle",timer=null,startAt=0;
+let best=localStorage.getItem("tinyplayReactionBest");
+if(best)bestEl.textContent=best+" ms";
+
+function startGame(){
+  clearTimeout(timer);
+  round=0; times=[]; state="idle";
+  roundEl.textContent="0 / 5";
+  avgEl.textContent="-"; lastEl.textContent="-"; averageEl.textContent="-";
+  finalResult.classList.remove("show"); finalAverage.textContent="-";
+  target.className=""; target.textContent="START";
+  help.textContent="START를 누르면 첫 번째 WAIT가 시작됩니다.";
+}
+
+function beginRound(){
+  round++;
+  roundEl.textContent=round+" / 5";
+  state="waiting";
+  target.className="wait";
+  target.textContent="WAIT";
+  help.textContent="노란색 화면에서 초록색으로 바뀔 때까지 기다리세요.";
+
+  timer=setTimeout(()=>{
+    state="ready";
+    startAt=performance.now();
+    target.className="ready";
+    target.textContent="CLICK";
+    help.textContent="지금 클릭하세요.";
+  },1200+Math.random()*2800);
+}
+
+target.addEventListener("click",()=>{
+  if(state==="idle" && round===0){
+    beginRound();
+    return;
+  }
+
+  if(state==="waiting"){
+    clearTimeout(timer);
+    state="idle";
+    target.className="fail";
+    target.textContent="TOO SOON";
+    help.textContent="너무 빨리 눌렀습니다. 다시 시작하세요.";
+    return;
+  }
+
+  if(state==="ready"){
+    const ms=Math.round(performance.now()-startAt);
+    times.push(ms);
+
+    lastEl.textContent=ms+" ms";
+    const avg=Math.round(times.reduce((a,b)=>a+b,0)/times.length);
+    avgEl.textContent=avg+" ms";
+    averageEl.textContent=avg+" ms";
+
+    state="result";
+    target.className="";
+    target.textContent=ms+" ms";
+
+    if(round<5){
+      help.textContent="기록 확인 후 다시 클릭하면 다음 WAIT가 시작됩니다.";
+    }else{
+      state="finished";
+      help.textContent="5회 측정 완료. 아래에서 평균 반응속도를 확인하세요.";
+      finalAverage.textContent=avg+" ms";
+      finalResult.classList.add("show");
+
+      if(!best || avg<Number(best)){
+        best=avg;
+        localStorage.setItem("tinyplayReactionBest",avg);
+        bestEl.textContent=avg+" ms";
+      }
+    }
+    return;
+  }
+
+  if(state==="result"){
+    beginRound();
+  }
+});
+</script>
+</body>
+</html>
