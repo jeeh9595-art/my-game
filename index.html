@@ -4,37 +4,215 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TinyPlay — 작고 재밌는 게임이 가득!</title>
-<meta name="description" content="설치 없이 바로 즐기는 다양한 미니게임, TinyPlay(tinyplay.kr)">
+<meta name="description" content="설치 없이 바로 즐기는 다양한 미니게임, TinyPlay (tinyplay.kr)">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  html,body{background:#141225}
-  .stage{position:relative; width:100%; max-width:1402px; margin:0 auto}
-  .stage img{display:block; width:100%; height:auto}
-  a.hot{position:absolute; display:block; z-index:2}
-  a.hot:focus{outline:none}
+  :root{
+    --purple:#7c5cff; --purple2:#9d7bff; --pink:#ff6bd6;
+    --night1:#241a4d; --night2:#3a2a72; --night3:#171232;
+    --dark:#141225; --text:#1e2233; --muted:#6b7280; --line:#eceef4;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Segoe UI','Malgun Gothic',sans-serif; color:var(--text); background:#fff}
+  a{text-decoration:none; color:inherit}
+  .wrap{max-width:1240px; margin:0 auto; padding:0 24px}
+
+  /* nav */
+  .topbar{background:var(--dark); color:#fff; position:sticky; top:0; z-index:50}
+  .nav{display:flex; align-items:center; gap:26px; padding:14px 0}
+  .brand{display:flex; align-items:center; gap:11px}
+  .brand .mark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(135deg,var(--purple),var(--pink)); box-shadow:0 6px 16px rgba(124,92,255,.5)}
+  .brand .name{font-size:23px; font-weight:900; line-height:1}
+  .brand .name b{color:var(--purple2)}
+  .brand .sub{font-size:11px; color:#b6b2d8; margin-top:3px}
+  .menu{display:flex; gap:24px; margin-left:14px; font-weight:700; font-size:15px; color:#d6d3ee}
+  .menu a:hover{color:#fff}
+  .search{margin-left:auto; display:flex; align-items:center; gap:8px; background:#26233f; border:1px solid #37345a;
+    border-radius:11px; padding:9px 14px; width:240px}
+  .search input{border:0; background:transparent; color:#fff; outline:none; width:100%; font-size:14px}
+  .search input::placeholder{color:#8f8bb5}
+
+  /* hero */
+  .hero{color:#fff; background:radial-gradient(120% 130% at 72% 10%, var(--night2), var(--night1) 45%, var(--night3) 100%); overflow:hidden}
+  .hero .wrap{display:flex; align-items:center; gap:30px; padding:56px 24px 60px}
+  .hero-left{flex:1; min-width:280px}
+  .hero h1{font-size:64px; font-weight:900; line-height:1; letter-spacing:-2px}
+  .hero h1 b{color:var(--purple2)}
+  .hero h2{font-size:28px; font-weight:800; margin-top:16px}
+  .hero h2 em{color:var(--purple2); font-style:normal}
+  .hero p{margin-top:14px; font-size:17px; line-height:1.6; color:#cfd0ea; max-width:420px}
+  .hero-btn{display:inline-flex; align-items:center; gap:9px; margin-top:26px; font-size:17px; font-weight:800; color:#fff;
+    background:linear-gradient(135deg,var(--purple),var(--purple2)); padding:15px 28px; border-radius:14px;
+    box-shadow:0 12px 26px rgba(124,92,255,.5), inset 0 1px 0 rgba(255,255,255,.35); transition:transform .12s}
+  .hero-btn:hover{transform:translateY(-2px)}
+  .hero-art{flex:1; min-width:300px; display:flex; justify-content:center}
+  .hero-art img{width:100%; max-width:560px; height:auto; border-radius:18px}
+
+  /* features */
+  .features{background:#f6f7fb; border-bottom:1px solid var(--line)}
+  .features .wrap{display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:24px}
+  .feat{display:flex; align-items:center; gap:13px; padding:6px 20px; border-right:1px solid #e7e9f2}
+  .feat:last-child{border-right:0}
+  .feat .ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:19px;color:#fff;flex:none}
+  .feat h4{font-size:15px; font-weight:800}
+  .feat p{font-size:12.5px; color:var(--muted); margin-top:2px}
+  .ic.p{background:linear-gradient(135deg,#7c5cff,#9d7bff)}
+  .ic.g{background:linear-gradient(135deg,#2ec27e,#4ade80)}
+  .ic.y{background:linear-gradient(135deg,#f7b500,#ffcf40)}
+  .ic.r{background:linear-gradient(135deg,#ff5d8f,#ff8fb3)}
+
+  /* games */
+  .games{padding:50px 0 20px}
+  .sec-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px}
+  .sec-head h3{font-size:25px; font-weight:900; display:flex; align-items:center; gap:9px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:20px}
+  .card{background:#fff; border:1px solid var(--line); border-radius:18px; overflow:hidden;
+    box-shadow:0 6px 18px rgba(20,20,50,.06); transition:transform .14s, box-shadow .14s}
+  .card:hover{transform:translateY(-4px); box-shadow:0 14px 30px rgba(20,20,50,.12)}
+  .card .thumb{height:140px; display:grid; place-items:center; font-size:58px; position:relative}
+  .card .cat{position:absolute; top:11px; left:11px; font-size:11px; font-weight:800; background:#fff; color:#6b46ff;
+    padding:4px 10px; border-radius:999px; box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  .card .body{padding:16px}
+  .card h4{font-size:17px; font-weight:800}
+  .card .desc{font-size:13px; color:var(--muted); line-height:1.5; margin:7px 0 15px; min-height:38px}
+  .card .play{display:block; text-align:center; font-weight:800; font-size:14px; color:#fff;
+    background:linear-gradient(135deg,var(--purple),var(--purple2)); border-radius:11px; padding:11px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+  .card.soon{opacity:.85}
+  .card.soon .play{color:var(--muted); background:#f2f3f8; box-shadow:none; cursor:default}
+  .noresult{grid-column:1/-1; text-align:center; color:var(--muted); padding:40px; font-size:15px; display:none}
+
+  /* footer */
+  footer{background:var(--dark); color:#cfcde6; margin-top:44px}
+  footer .wrap{display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:24px; padding:44px 24px}
+  .fbrand .name{font-size:22px; font-weight:900; color:#fff; display:flex; align-items:center; gap:9px}
+  .fbrand .name b{color:var(--purple2)}
+  .fbrand p{font-size:13.5px; color:#9a97bd; margin-top:11px}
+  footer h5{font-size:14px; font-weight:800; color:#fff; margin-bottom:12px}
+  footer ul{list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13.5px; color:#9a97bd}
+  footer ul a:hover{color:#fff}
+  .copyright{text-align:center; padding:16px; font-size:12.5px; color:#7d7aa0; border-top:1px solid #262340}
+
+  @media(max-width:860px){
+    .hero .wrap{flex-direction:column; text-align:center}
+    .hero p{margin-left:auto; margin-right:auto}
+    .hero h1{font-size:52px}
+    .features .wrap{grid-template-columns:repeat(2,1fr); gap:16px}
+    .feat{border-right:0}
+    .menu{display:none}
+    .search{width:180px}
+    footer .wrap{grid-template-columns:1fr 1fr}
+  }
 </style>
 </head>
 <body>
-  <div class="stage">
-    <img src="home.png" alt="TinyPlay — 작고 재밌는 게임이 가득!">
 
-    <!-- 게임 둘러보기 버튼 -->
-    <a class="hot" href="game1/" aria-label="게임 둘러보기"
-       style="left:7.8%; top:33.6%; width:16.2%; height:4.8%"></a>
-
-    <!-- 추천 게임 카드 6개 (현재 실제 게임은 1번 카드로 연결) -->
-    <a class="hot" href="game1/" aria-label="10초 눈치게임 플레이"
-       style="left:3.6%; top:57.5%; width:14.4%; height:24.5%"></a>
-    <a class="hot" href="game1/" aria-label="게임 플레이"
-       style="left:19.3%; top:57.5%; width:14.4%; height:24.5%"></a>
-    <a class="hot" href="game1/" aria-label="게임 플레이"
-       style="left:34.9%; top:57.5%; width:14.4%; height:24.5%"></a>
-    <a class="hot" href="game1/" aria-label="게임 플레이"
-       style="left:50.6%; top:57.5%; width:14.4%; height:24.5%"></a>
-    <a class="hot" href="game1/" aria-label="게임 플레이"
-       style="left:66.3%; top:57.5%; width:14.4%; height:24.5%"></a>
-    <a class="hot" href="game1/" aria-label="게임 플레이"
-       style="left:82.0%; top:57.5%; width:14.4%; height:24.5%"></a>
+  <div class="topbar">
+    <div class="wrap nav">
+      <div class="brand">
+        <span class="mark">🎮</span>
+        <div><div class="name">Tiny<b>Play</b></div><div class="sub">간단하게, 재밌게!</div></div>
+      </div>
+      <div class="menu">
+        <a href="#top">🏠 홈</a><a href="#games">🎮 게임</a><a href="#about">ℹ️ 소개</a>
+      </div>
+      <div class="search">🔍 <input id="q" placeholder="게임 검색..." oninput="filterGames()"></div>
+    </div>
   </div>
+
+  <section class="hero" id="top">
+    <div class="wrap">
+      <div class="hero-left">
+        <h1>Tiny<b>Play</b></h1>
+        <h2>작고 <em>재밌는 게임</em>이 가득!</h2>
+        <p>설치 없이 바로 즐길 수 있는 다양한 미니게임을 지금 플레이해보세요!</p>
+        <a class="hero-btn" href="#games">🎮 게임 둘러보기</a>
+      </div>
+      <div class="hero-art"><img src="hero.png" alt="TinyPlay 캐릭터"></div>
+    </div>
+  </section>
+
+  <section class="features" id="about">
+    <div class="wrap">
+      <div class="feat"><span class="ic p">⚡</span><div><h4>바로 플레이</h4><p>설치 없이 즉시 플레이</p></div></div>
+      <div class="feat"><span class="ic g">🛡️</span><div><h4>안전한 게임</h4><p>안전하고 검증된 게임</p></div></div>
+      <div class="feat"><span class="ic y">🏆</span><div><h4>다양한 장르</h4><p>액션, 퍼즐, 아케이드 등</p></div></div>
+      <div class="feat"><span class="ic r">💗</span><div><h4>무료 플레이</h4><p>모든 게임을 무료로!</p></div></div>
+    </div>
+  </section>
+
+  <section class="wrap games" id="games">
+    <div class="sec-head"><h3>🎮 게임 목록</h3></div>
+    <div class="grid" id="grid">
+
+      <div class="card" data-name="10초 눈치게임 순발력">
+        <div class="thumb" style="background:linear-gradient(135deg,#4a7c3a,#7fb85a)"><span class="cat">순발력</span>⏱️</div>
+        <div class="body">
+          <h4>10초 눈치게임</h4>
+          <p class="desc">10초 안에 순서대로 숫자를 눌러라! 콤보와 난이도가 점점 올라가는 순발력 게임.</p>
+          <a class="play" href="game1/">▶ 플레이하기</a>
+        </div>
+      </div>
+
+      <div class="card soon" data-name="블록 마스터 퍼즐">
+        <div class="thumb" style="background:linear-gradient(135deg,#2a2f55,#454b8a)"><span class="cat">퍼즐</span>🧱</div>
+        <div class="body">
+          <h4>블록 마스터</h4>
+          <p class="desc">블록을 맞춰 더 높은 점수를 노려보세요!</p>
+          <span class="play">준비 중</span>
+        </div>
+      </div>
+
+      <div class="card soon" data-name="스페이스 슈터 아케이드">
+        <div class="thumb" style="background:linear-gradient(135deg,#1b1b3a,#3a2a66)"><span class="cat">아케이드</span>🚀</div>
+        <div class="body">
+          <h4>스페이스 슈터</h4>
+          <p class="desc">우주를 지키는 슈팅 게임!</p>
+          <span class="play">준비 중</span>
+        </div>
+      </div>
+
+      <div class="card soon" data-name="미니 축구 스포츠">
+        <div class="thumb" style="background:linear-gradient(135deg,#3a6a3a,#6ab85a)"><span class="cat">스포츠</span>⚽</div>
+        <div class="body">
+          <h4>미니 축구</h4>
+          <p class="desc">간단하게 즐기는 미니 축구 게임!</p>
+          <span class="play">준비 중</span>
+        </div>
+      </div>
+
+      <div class="noresult" id="noresult">검색 결과가 없어요 😅</div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="fbrand">
+        <div class="name"><span>🎮</span> Tiny<b>Play</b></div>
+        <p>작고 재밌는 게임의 모든 것 · tinyplay.kr</p>
+      </div>
+      <div><h5>사이트</h5><ul><li><a href="#top">홈</a></li><li><a href="#games">게임</a></li><li><a href="#about">소개</a></li></ul></div>
+      <div><h5>고객지원</h5><ul><li>문의하기</li><li>자주 묻는 질문</li><li>버그 신고</li></ul></div>
+      <div><h5>정책</h5><ul><li>개인정보처리방침</li><li>이용약관</li></ul></div>
+    </div>
+    <div class="copyright">© 2026 TinyPlay. All rights reserved.</div>
+  </footer>
+
+  <script>
+    function filterGames(){
+      var q = document.getElementById('q').value.trim().toLowerCase();
+      var cards = document.querySelectorAll('#grid .card');
+      var shown = 0;
+      cards.forEach(function(c){
+        var name = (c.getAttribute('data-name')||'').toLowerCase();
+        var hit = name.indexOf(q) !== -1;
+        c.style.display = hit ? '' : 'none';
+        if(hit) shown++;
+      });
+      document.getElementById('noresult').style.display = shown ? 'none' : 'block';
+    }
+  </script>
+
 </body>
 </html>
