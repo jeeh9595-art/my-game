@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9606850757969636" crossorigin="anonymous"></script>
+<title>2048 — TinyPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+@font-face{
+ font-family:'DungGeunMo';
+ src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff') format('woff');
+ font-display:swap;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f4f2;color:#202329;font-family:Arial,"Noto Sans KR",sans-serif}
+
+/* ===== 공통 헤더 (메인화면과 동일) ===== */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(7,7,15,.95);border-bottom:2px solid #28e6ff;
+ box-shadow:0 0 14px rgba(40,230,255,.35);font-family:'DungGeunMo','Press Start 2P',monospace}
+.topbar .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+.topbar .nav{display:flex;align-items:center;gap:20px;padding:14px 0}
+.topbar a{text-decoration:none}
+.topbar .logo{display:inline-block;font-family:'Press Start 2P',monospace;font-size:17px;color:#28e6ff;
+ text-shadow:0 0 5px #28e6ff,0 0 14px rgba(40,230,255,.7)}
+.topbar .logo .p2{color:#ff2fb0;text-shadow:0 0 5px #ff2fb0,0 0 14px rgba(255,47,176,.7)}
+.topbar .menu{display:flex;gap:8px;margin-left:8px}
+.topbar .menu a{font-size:13px;padding:7px 12px;border:2px solid #2a2a4d;color:#8f8fc0}
+.topbar .menu a:hover{border-color:#ffe23d;color:#ffe23d;text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .coin{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:10px;color:#ffe23d;
+ display:flex;align-items:center;gap:8px}
+.topbar .coin .inf{text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .search{display:flex;align-items:center;gap:8px;background:#0a0a18;border:2px solid #ff2fb0;
+ padding:8px 12px;color:#ff2fb0}
+.topbar .search input{border:0;background:transparent;color:#fff;outline:none;width:150px;
+ font-family:'DungGeunMo',monospace;font-size:15px}
+.topbar .search input::placeholder{color:#6a6a9a}
+@media(max-width:720px){.topbar .menu{display:none}.topbar .coin{display:none}.topbar .search input{width:110px}}
+.pagewrap{display:flex;justify-content:center;align-items:flex-start;gap:20px;max-width:1400px;margin:0 auto;padding:25px 18px}
+.sidead{flex:none;width:160px;min-height:600px;border:1px solid #dedfe3;background:#fff;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;position:sticky;top:84px;writing-mode:vertical-rl;letter-spacing:4px}
+@media(max-width:1100px){.sidead{display:none}.pagewrap{padding:16px 10px}}
+
+/* ===== 게임 스테이지 ===== */
+.stage{flex:1;min-width:0;max-width:1050px;padding:0 0 50px}
+.gtitle{text-align:center;margin-bottom:22px}
+.gtitle h1{font-size:40px;margin:0 0 8px;font-weight:800;letter-spacing:-1px;
+ font-family:'Press Start 2P',monospace;color:#20263a}
+.gtitle p{margin:0;color:#777;font-size:14px}
+@media(max-width:700px){.stage{padding:0 0 35px}.gtitle h1{font-size:30px}}
+
+/* ===== 2048 게임 (scoped) ===== */
+.g2048{max-width:460px;margin:0 auto}
+.g2048 .scorebar{display:flex;gap:12px;justify-content:center;margin-bottom:16px}
+.g2048 .sbox{flex:1;background:#20263a;color:#fff;border-radius:8px;padding:12px 8px;text-align:center;
+ box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.g2048 .sbox .lbl{font-size:11px;letter-spacing:2px;color:#9aa3bd;text-transform:uppercase;display:block;margin-bottom:4px}
+.g2048 .sbox .val{font-size:26px;font-weight:800;line-height:1}
+.g2048 .boardwrap{position:relative;background:#1b2033;border-radius:12px;padding:12px;
+ box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.g2048 .grid{position:relative;width:100%;aspect-ratio:1/1}
+.g2048 .cell,.g2048 .tile{position:absolute;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.g2048 .cell{background:rgba(255,255,255,.05)}
+.g2048 .tile{font-weight:800;color:#fff;transition:left .12s ease,top .12s ease;
+ font-family:Arial,sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.g2048 .tile.pop{animation:g2048pop .16s ease}
+.g2048 .tile.merged{animation:g2048merge .18s ease}
+@keyframes g2048pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+@keyframes g2048merge{0%{transform:scale(1)}45%{transform:scale(1.18)}100%{transform:scale(1)}}
+.g2048 .overlay{position:absolute;inset:0;background:rgba(15,18,30,.88);border-radius:12px;
+ display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;z-index:20}
+.g2048 .overlay.show{display:flex}
+.g2048 .overlay h2{font-size:34px;margin:0 0 6px;font-family:'Press Start 2P',monospace;color:#ffe23d;
+ text-shadow:0 0 12px rgba(255,226,61,.6)}
+.g2048 .overlay .fin{font-size:15px;color:#c7ccd8;margin-bottom:18px}
+.g2048 .actions{text-align:center;margin-top:18px}
+.g2048 button{background:#20263a;color:#fff;border:0;padding:11px 26px;font-size:14px;cursor:pointer;
+ border-radius:8px;font-weight:700}
+.g2048 button:hover{background:#303852}
+.g2048 .overlay button{background:#ff2fb0}
+.g2048 .overlay button:hover{background:#ff53c1}
+.description{max-width:460px;margin:26px auto 0;background:#fff;border:1px solid #dedfe3;border-radius:10px;padding:22px 24px}
+.description h2{font-size:16px;margin:0 0 12px}
+.description p{margin:6px 0;color:#666;font-size:13px;line-height:1.7}
+footer{height:110px;background:#10182d;color:#9299aa;padding:28px 34px;font-size:12px}
+@media(max-width:700px){.g2048 .gtitle h1{font-size:30px}}
+</style>
+<style>
+/* TinyPlay 다크 테마 통일 */
+body{background:#0e0c1a!important;color:#eaeaff!important}
+.sidead{background:#15132a!important;border:1px solid #2a2a4d!important;color:#6a6a9a!important}
+.gtitle{background:transparent!important;border:none!important}
+.gtitle h1{color:#28e6ff!important}
+.gtitle p{color:#9aa0c0!important}
+.description,.desc,.mine-desc{background:#15132a!important;border:1px solid #2a2a4d!important;border-radius:12px!important}
+.description h2,.desc h2,.mine-desc h2{color:#ffe23d!important}
+.description p,.desc p,.mine-desc p{color:#c9cbe6!important}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="wrap nav">
+  <a class="logo" href="../">TINY<span class="p2">PLAY</span></a>
+  <div class="menu"><a href="../">홈</a><a href="../#games">게임</a><a href="../#about">소개</a></div>
+  <div class="coin">🪙 CREDIT&nbsp;<span class="inf">∞</span></div>
+  <div class="search">🔎<input id="q" placeholder="게임 검색..." onkeydown="if(event.key==='Enter')location.href='../#games'"></div>
+ </div>
+</header>
+
+<div class="pagewrap">
+<aside class="sidead">광고 영역</aside>
+<main class="stage">
+
+  <div class="gtitle">
+    <h1>2048</h1>
+    <p>같은 숫자를 합쳐 2048을 만들어보세요!</p>
+  </div>
+
+  <div class="g2048">
+    <div class="scorebar">
+      <div class="sbox"><span class="lbl">Score</span><span class="val" id="score">0</span></div>
+      <div class="sbox"><span class="lbl">Best</span><span class="val" id="best">0</span></div>
+    </div>
+
+    <div class="boardwrap">
+      <div class="grid" id="grid"></div>
+      <div class="overlay" id="overlay">
+        <h2>게임 오버</h2>
+        <div class="fin">최종 점수 <b id="finalScore">0</b></div>
+        <button onclick="newGame()">다시 시작</button>
+      </div>
+    </div>
+
+    <div class="actions"><button onclick="newGame()">새 게임</button></div>
+  </div>
+
+  <section class="description">
+    <h2>게임 방법</h2>
+    <p>방향키(↑↓←→) 또는 WASD, 모바일에서는 스와이프로 타일을 이동합니다.</p>
+    <p>같은 숫자의 타일이 만나면 하나로 합쳐지며 숫자가 두 배가 됩니다.</p>
+    <p>합쳐진 숫자만큼 점수가 올라가고, 최고 점수는 자동으로 저장됩니다.</p>
+    <p>더 이상 움직일 수 없으면 게임이 끝납니다. 2048 타일을 만들어보세요!</p>
+  </section>
+</main>
+<aside class="sidead">광고 영역</aside>
+</div>
+
+<footer>
+  <div style="margin-bottom:8px"><a href="../" style="color:#c7ccd8;text-decoration:none;margin-right:14px">홈</a><a href="../privacy/" style="color:#c7ccd8;text-decoration:none;margin-right:14px">개인정보처리방침</a><a href="../terms/" style="color:#c7ccd8;text-decoration:none;margin-right:14px">이용약관</a><a href="../contact/" style="color:#c7ccd8;text-decoration:none">문의</a></div>
+  © 2026 TinyPlay · tinyplay.kr
+</footer>
+
+<script>
+(function(){
+  const SIZE=4, GAP=12, BEST_KEY='tinyplay2048Best';
+  const grid=document.getElementById('grid');
+  const scoreEl=document.getElementById('score');
+  const bestEl=document.getElementById('best');
+  const overlay=document.getElementById('overlay');
+  const finalScoreEl=document.getElementById('finalScore');
+
+  let board=[], score=0, tileId=0, tiles={};
+  let best=Number(localStorage.getItem(BEST_KEY)||0);
+  bestEl.textContent=best;
+
+  const COLORS={
+    2:['#3a4256','#eef1f7'],4:['#4a5578','#eef1f7'],8:['#f2b06a','#3a2410'],
+    16:['#f2914a','#3a2410'],32:['#f26d5b','#fff'],64:['#f24b4b','#fff'],
+    128:['#f2c14b','#3a2f00'],256:['#f2b820','#3a2f00'],512:['#f2a600','#3a2f00'],
+    1024:['#a24bff','#fff'],2048:['#28e6ff','#052a30'],4096:['#ff2fb0','#fff'],8192:['#00e58b','#052a1a']
+  };
+
+  // build background cells
+  function buildCells(){
+    grid.querySelectorAll('.cell').forEach(c=>c.remove());
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const el=document.createElement('div');
+      el.className='cell';
+      placeEl(el,r,c);
+      grid.appendChild(el);
+    }
+  }
+  function cellPct(){ // returns [sizePct, gapPct] relative to grid width
+    const w=grid.clientWidth||440;
+    const gapPct=GAP/w*100;
+    const sizePct=(100-gapPct*(SIZE+1))/SIZE;
+    return [sizePct,gapPct];
+  }
+  function placeEl(el,r,c){
+    const [s,g]=cellPct();
+    el.style.width=s+'%';el.style.height=s+'%';
+    el.style.left=(g+c*(s+g))+'%';
+    el.style.top=(g+r*(s+g))+'%';
+  }
+  function fontFor(v){
+    const len=String(v).length;
+    if(len<=2)return '46%';
+    if(len===3)return '36%';
+    if(len===4)return '28%';
+    return '22%';
+  }
+
+  function empties(){
+    const e=[];
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(!board[r][c])e.push([r,c]);
+    return e;
+  }
+  function spawn(){
+    const e=empties();
+    if(!e.length)return;
+    const [r,c]=e[Math.floor(Math.random()*e.length)];
+    const v=Math.random()<0.9?2:4;
+    const id=++tileId;
+    const t={id,v,r,c};
+    board[r][c]=t;
+    tiles[id]=t;
+    const el=document.createElement('div');
+    el.className='tile pop';
+    el.dataset.id=id;
+    t.el=el;
+    styleTile(el,t);
+    grid.appendChild(el);
+  }
+  function styleTile(el,t){
+    const [s,g]=cellPct();
+    const pair=COLORS[t.v]||['#111','#fff'];
+    el.style.width=s+'%';el.style.height=s+'%';
+    el.style.left=(g+t.c*(s+g))+'%';
+    el.style.top=(g+t.r*(s+g))+'%';
+    el.style.background=pair[0];
+    el.style.color=pair[1];
+    el.style.fontSize=fontFor(t.v);
+    if(t.v>=128)el.style.boxShadow='0 0 14px '+pair[0]+',0 3px 10px rgba(0,0,0,.35)';
+    else el.style.boxShadow='0 3px 10px rgba(0,0,0,.35)';
+    el.textContent=t.v;
+  }
+
+  function reset(){
+    board=[];
+    for(let r=0;r<SIZE;r++){board.push([]);for(let c=0;c<SIZE;c++)board[r].push(null);}
+    tiles={};
+    grid.querySelectorAll('.tile').forEach(t=>t.remove());
+    score=0;updateScore();
+    overlay.classList.remove('show');
+    spawn();spawn();
+  }
+  function updateScore(){
+    scoreEl.textContent=score;
+    if(score>best){best=score;localStorage.setItem(BEST_KEY,best);}
+    bestEl.textContent=best;
+  }
+
+  // move logic. dir: 0=up,1=right,2=down,3=left
+  function move(dir){
+    let moved=false;
+    const merges=[]; // ids to flag merged
+    // define traversal order
+    const line=(idx)=>{
+      // returns array of [r,c] for a line in the direction of travel (from far end)
+      const arr=[];
+      if(dir===3||dir===1){ // horizontal, row idx
+        for(let c=0;c<SIZE;c++)arr.push([idx,c]);
+        if(dir===1)arr.reverse();
+      }else{ // vertical, col idx
+        for(let r=0;r<SIZE;r++)arr.push([r,idx]);
+        if(dir===2)arr.reverse();
+      }
+      return arr;
+    };
+    for(let i=0;i<SIZE;i++){
+      const cells=line(i);
+      // gather tiles in travel order (skip nulls)
+      const seq=[];
+      for(const [r,c] of cells){if(board[r][c])seq.push(board[r][c]);}
+      // clear board line
+      for(const [r,c] of cells)board[r][c]=null;
+      // merge pass
+      const out=[];
+      for(let k=0;k<seq.length;k++){
+        if(k+1<seq.length && seq[k].v===seq[k+1].v){
+          const merged=seq[k];
+          const gone=seq[k+1];
+          merged.v*=2;
+          score+=merged.v;
+          out.push(merged);
+          // remove gone tile: move it to same target then delete
+          gone.mergeInto=merged;
+          merges.push(merged.id);
+          k++; // skip next
+        }else{
+          out.push(seq[k]);
+        }
+      }
+      // place back
+      for(let p=0;p<out.length;p++){
+        const [r,c]=cells[p];
+        const t=out[p];
+        if(t.r!==r||t.c!==c)moved=true;
+        t.r=r;t.c=c;
+        board[r][c]=t;
+      }
+      // detect merges cause movement too
+      if(merges.length)moved=moved;
+    }
+    // any merge means moved
+    for(const id in tiles){if(tiles[id].mergeInto)moved=true;}
+
+    if(!moved){
+      // clean transient flags
+      for(const id in tiles)delete tiles[id].mergeInto;
+      return false;
+    }
+
+    // animate: move surviving tiles, slide gone tiles to target then remove
+    for(const id in tiles){
+      const t=tiles[id];
+      if(t.mergeInto){
+        const target=t.mergeInto;
+        t.r=target.r;t.c=target.c;
+        const [s,g]=cellPct();
+        t.el.style.left=(g+t.c*(s+g))+'%';
+        t.el.style.top=(g+t.r*(s+g))+'%';
+        const el=t.el;
+        setTimeout(()=>{if(el&&el.parentNode)el.remove();},130);
+        delete tiles[id];
+      }
+    }
+    // reposition & restyle survivors
+    for(const id in tiles){
+      const t=tiles[id];
+      t.el.classList.remove('pop','merged');
+      styleTile(t.el,t);
+    }
+    // flag merged animation
+    merges.forEach(id=>{
+      const t=tiles[id];
+      if(t){void t.el.offsetWidth;t.el.classList.add('merged');}
+    });
+
+    updateScore();
+    setTimeout(()=>{spawn();if(isGameOver())gameOver();},130);
+    return true;
+  }
+
+  function isGameOver(){
+    if(empties().length)return false;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const v=board[r][c].v;
+      if(c+1<SIZE&&board[r][c+1].v===v)return false;
+      if(r+1<SIZE&&board[r+1][c].v===v)return false;
+    }
+    return true;
+  }
+  function gameOver(){
+    finalScoreEl.textContent=score;
+    overlay.classList.add('show');
+  }
+
+  // input
+  const KEYMAP={
+    'ArrowUp':0,'ArrowRight':1,'ArrowDown':2,'ArrowLeft':3,
+    'w':0,'d':1,'s':2,'a':3,'W':0,'D':1,'S':2,'A':3
+  };
+  document.addEventListener('keydown',(e)=>{
+    if(overlay.classList.contains('show'))return;
+    if(document.activeElement&&document.activeElement.id==='q')return;
+    if(e.key in KEYMAP){e.preventDefault();move(KEYMAP[e.key]);}
+  });
+
+  // touch
+  let tx=0,ty=0;
+  grid.addEventListener('touchstart',(e)=>{
+    const t=e.touches[0];tx=t.clientX;ty=t.clientY;
+  },{passive:true});
+  grid.addEventListener('touchend',(e)=>{
+    if(overlay.classList.contains('show'))return;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-tx, dy=t.clientY-ty;
+    const ax=Math.abs(dx), ay=Math.abs(dy);
+    if(Math.max(ax,ay)<24)return;
+    if(ax>ay)move(dx>0?1:3);else move(dy>0?2:0);
+  },{passive:true});
+
+  // reposition on resize
+  window.addEventListener('resize',()=>{
+    grid.querySelectorAll('.cell').forEach((el,i)=>{
+      const r=Math.floor(i/SIZE),c=i%SIZE;placeEl(el,r,c);
+    });
+    for(const id in tiles)styleTile(tiles[id].el,tiles[id]);
+  });
+
+  window.newGame=function(){reset();};
+
+  buildCells();
+  reset();
+})();
+</script>
+</body>
+</html>

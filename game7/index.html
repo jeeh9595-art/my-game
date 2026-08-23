@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9606850757969636" crossorigin="anonymous"></script>
+<title>두더지 잡기 — TinyPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+@font-face{
+ font-family:'DungGeunMo';
+ src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff') format('woff');
+ font-display:swap;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f4f2;color:#202329;font-family:Arial,"Noto Sans KR",sans-serif}
+
+/* ===== 공통 헤더 (메인화면과 동일) ===== */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(7,7,15,.95);border-bottom:2px solid #28e6ff;
+ box-shadow:0 0 14px rgba(40,230,255,.35);font-family:'DungGeunMo','Press Start 2P',monospace}
+.topbar .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+.topbar .nav{display:flex;align-items:center;gap:20px;padding:14px 0}
+.topbar a{text-decoration:none}
+.topbar .logo{display:inline-block;font-family:'Press Start 2P',monospace;font-size:17px;color:#28e6ff;
+ text-shadow:0 0 5px #28e6ff,0 0 14px rgba(40,230,255,.7)}
+.topbar .logo .p2{color:#ff2fb0;text-shadow:0 0 5px #ff2fb0,0 0 14px rgba(255,47,176,.7)}
+.topbar .menu{display:flex;gap:8px;margin-left:8px}
+.topbar .menu a{font-size:13px;padding:7px 12px;border:2px solid #2a2a4d;color:#8f8fc0}
+.topbar .menu a:hover{border-color:#ffe23d;color:#ffe23d;text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .coin{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:10px;color:#ffe23d;
+ display:flex;align-items:center;gap:8px}
+.topbar .coin .inf{text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .search{display:flex;align-items:center;gap:8px;background:#0a0a18;border:2px solid #ff2fb0;
+ padding:8px 12px;color:#ff2fb0}
+.topbar .search input{border:0;background:transparent;color:#fff;outline:none;width:150px;
+ font-family:'DungGeunMo',monospace;font-size:15px}
+.topbar .search input::placeholder{color:#6a6a9a}
+@media(max-width:720px){.topbar .menu{display:none}.topbar .coin{display:none}.topbar .search input{width:110px}}
+.pagewrap{display:flex;justify-content:center;align-items:flex-start;gap:20px;max-width:1400px;margin:0 auto;padding:25px 18px}
+.sidead{flex:none;width:160px;min-height:600px;border:1px solid #dedfe3;background:#fff;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;position:sticky;top:84px;writing-mode:vertical-rl;letter-spacing:4px}
+.container{max-width:1050px;flex:1;min-width:0;padding:0 0 50px}
+@media(max-width:1100px){.sidead{display:none}.pagewrap{padding:16px 10px}}
+footer{height:110px;background:#10182d;color:#9299aa;padding:28px 34px;font-size:12px}
+
+/* ===== 게임 전용 (두더지 잡기) ===== */
+.stage{max-width:1050px;flex:1;min-width:0;padding:0 0 50px}
+.gtitle{background:#fff;border:1px solid #dedfe3;padding:20px 24px;border-bottom:none}
+.gtitle h1{font-size:22px;margin:0 0 7px;font-weight:750;letter-spacing:-.5px}
+.gtitle p{margin:0;color:#777;font-size:13px}
+
+.gamebox{background:#0e1224;border:1px solid #dedfe3;padding:24px}
+.statusbar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:460px;margin:0 auto 22px}
+.st{background:#161c34;border:1px solid #2a3358;border-radius:10px;padding:12px 8px;text-align:center}
+.st span{display:block;color:#7f8bbd;font-size:11px;margin-bottom:6px;font-family:'DungGeunMo',monospace;letter-spacing:1px}
+.st b{font-size:22px;font-weight:800;color:#28e6ff;text-shadow:0 0 8px rgba(40,230,255,.5)}
+.st.time b{color:#ffe23d;text-shadow:0 0 8px rgba(255,226,61,.5)}
+.st.best b{color:#ff2fb0;text-shadow:0 0 8px rgba(255,47,176,.5)}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:460px;margin:0 auto;position:relative}
+.hole{position:relative;aspect-ratio:1/1;border-radius:50%;
+ background:radial-gradient(circle at 50% 35%,#1a2140 0%,#0a0d1c 70%);
+ border:2px solid #28e6ff;box-shadow:0 0 12px rgba(40,230,255,.35),inset 0 8px 22px rgba(0,0,0,.75);
+ overflow:hidden;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.hole .dirt{position:absolute;left:8%;right:8%;bottom:0;height:26%;border-radius:50%/70% 70% 0 0;
+ background:linear-gradient(#3a2a18,#241a10);z-index:2}
+.critter{position:absolute;left:0;right:0;bottom:6%;margin:0 auto;width:70%;
+ display:flex;align-items:center;justify-content:center;font-size:min(9vw,52px);line-height:1;
+ transform:translateY(120%);transition:transform .12s cubic-bezier(.34,1.56,.64,1);z-index:1;
+ pointer-events:none}
+.hole.up .critter{transform:translateY(0)}
+.hole.hit .critter{transform:translateY(0) scale(1.35);opacity:0;transition:transform .16s ease,opacity .16s ease}
+.hole.bombhit{animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.popfx{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-family:'DungGeunMo',monospace;
+ font-size:20px;font-weight:800;color:#28e6ff;text-shadow:0 0 8px rgba(40,230,255,.8);
+ opacity:0;pointer-events:none;z-index:5}
+.popfx.show{animation:pop .55s ease-out}
+.popfx.minus{color:#ff5d6c;text-shadow:0 0 8px rgba(255,93,108,.8)}
+@keyframes pop{0%{opacity:1;transform:translate(-50%,-50%) scale(.6)}100%{opacity:0;transform:translate(-50%,-160%) scale(1.1)}}
+
+.actions{text-align:center;padding-top:22px}
+button{background:#28e6ff;color:#07070f;border:0;padding:12px 30px;font-size:15px;cursor:pointer;
+ font-family:'DungGeunMo','Press Start 2P',monospace;letter-spacing:1px;border-radius:8px;font-weight:700;
+ box-shadow:0 0 14px rgba(40,230,255,.5)}
+button:hover{background:#5cf0ff}
+
+.gwrap{position:relative}
+.overlay{position:absolute;inset:0;background:rgba(6,8,20,.9);display:none;flex-direction:column;
+ align-items:center;justify-content:center;z-index:20;border-radius:2px}
+.overlay.show{display:flex}
+.overlay h2{font-family:'DungGeunMo','Press Start 2P',monospace;color:#ff2fb0;font-size:30px;margin:0 0 10px;
+ text-shadow:0 0 12px rgba(255,47,176,.7)}
+.overlay .fscore{color:#fff;font-size:16px;margin-bottom:6px}
+.overlay .fscore b{color:#28e6ff;font-size:34px;display:block;margin-top:4px;
+ text-shadow:0 0 10px rgba(40,230,255,.6)}
+.overlay .newbest{color:#ffe23d;font-size:13px;margin:8px 0 18px;font-family:'DungGeunMo',monospace}
+
+.description{margin-top:20px;background:#fff;border:1px solid #dedfe3;padding:22px 24px}
+.description h2{font-size:16px;margin:0 0 12px}
+.description p{margin:6px 0;color:#666;font-size:13px;line-height:1.7}
+
+@media(max-width:700px){.stage{padding:0 0 35px}.gamebox{padding:14px}.grid,.statusbar{max-width:100%}}
+</style>
+<style>
+/* TinyPlay 다크 테마 통일 */
+body{background:#0e0c1a!important;color:#eaeaff!important}
+.sidead{background:#15132a!important;border:1px solid #2a2a4d!important;color:#6a6a9a!important}
+.gtitle{background:transparent!important;border:none!important}
+.gtitle h1{color:#28e6ff!important}
+.gtitle p{color:#9aa0c0!important}
+.description,.desc,.mine-desc{background:#15132a!important;border:1px solid #2a2a4d!important;border-radius:12px!important}
+.description h2,.desc h2,.mine-desc h2{color:#ffe23d!important}
+.description p,.desc p,.mine-desc p{color:#c9cbe6!important}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="wrap nav">
+  <a class="logo" href="../">TINY<span class="p2">PLAY</span></a>
+  <div class="menu"><a href="../">홈</a><a href="../#games">게임</a><a href="../#about">소개</a></div>
+  <div class="coin">🪙 CREDIT&nbsp;<span class="inf">∞</span></div>
+  <div class="search">🔎<input id="q" placeholder="게임 검색..." onkeydown="if(event.key==='Enter')location.href='../#games'"></div>
+ </div>
+</header>
+
+<div class="pagewrap">
+<aside class="sidead">광고 영역</aside>
+<main class="stage">
+
+  <div class="gtitle">
+    <h1>두더지 잡기</h1>
+    <p>튀어나오는 두더지를 빠르게 잡으세요!</p>
+  </div>
+
+  <section class="gamebox">
+    <div class="statusbar">
+      <div class="st"><span>점수</span><b id="score">0</b></div>
+      <div class="st time"><span>남은시간</span><b id="time">30</b></div>
+      <div class="st best"><span>최고점수</span><b id="best">0</b></div>
+    </div>
+
+    <div class="gwrap">
+      <div class="grid" id="grid"></div>
+      <div class="overlay" id="overlay">
+        <h2>게임 오버</h2>
+        <div class="fscore">최종 점수<b id="finalScore">0</b></div>
+        <div class="newbest" id="newBest" style="display:none">🎉 신기록 달성!</div>
+        <button onclick="startGame()">다시 시작</button>
+      </div>
+    </div>
+
+    <div class="actions"><button id="startBtn" onclick="startGame()">시작</button></div>
+  </section>
+
+  <section class="description">
+    <h2>게임 방법</h2>
+    <p>🐹 두더지를 클릭하면 점수를 얻습니다. (+1점)</p>
+    <p>💣 폭탄은 절대 누르지 마세요! 클릭하면 5점이 깎입니다. (-5점)</p>
+    <p>제한 시간은 30초이며, 시간이 지날수록 두더지가 더 빠르게 나타납니다.</p>
+    <p>최고 점수는 자동으로 저장되어 다음에도 확인할 수 있습니다.</p>
+  </section>
+</main>
+<aside class="sidead">광고 영역</aside>
+</div>
+
+<footer>
+  <div style="margin-bottom:8px"><a href="../" style="color:#c7ccd8;text-decoration:none;margin-right:14px">홈</a><a href="../privacy/" style="color:#c7ccd8;text-decoration:none;margin-right:14px">개인정보처리방침</a><a href="../terms/" style="color:#c7ccd8;text-decoration:none;margin-right:14px">이용약관</a><a href="../contact/" style="color:#c7ccd8;text-decoration:none">문의</a></div>
+  © 2026 TinyPlay · tinyplay.kr
+</footer>
+
+<script>
+const grid=document.getElementById("grid");
+const scoreEl=document.getElementById("score");
+const timeEl=document.getElementById("time");
+const bestEl=document.getElementById("best");
+const overlay=document.getElementById("overlay");
+const finalScoreEl=document.getElementById("finalScore");
+const newBestEl=document.getElementById("newBest");
+const startBtn=document.getElementById("startBtn");
+
+const BEST_KEY="tinyplayMoleBest";
+const HOLES=9, GAME_TIME=30;
+
+let holes=[];
+let score=0, timeLeft=GAME_TIME;
+let running=false;
+let countdownTimer=null, spawnTimer=null;
+let best=Number(localStorage.getItem(BEST_KEY)||0);
+bestEl.textContent=best;
+
+// build 3x3 grid
+for(let i=0;i<HOLES;i++){
+  const hole=document.createElement("div");
+  hole.className="hole";
+  hole.innerHTML='<div class="critter"></div><div class="popfx"></div><div class="dirt"></div>';
+  hole.dataset.state="empty"; // empty | mole | bomb
+  hole.dataset.timer="";
+  hole.addEventListener("click",()=>whack(i));
+  grid.appendChild(hole);
+  holes.push(hole);
+}
+
+function clearHole(hole){
+  if(hole.dataset.timer) clearTimeout(Number(hole.dataset.timer));
+  hole.dataset.timer="";
+  hole.dataset.state="empty";
+  hole.classList.remove("up");
+  hole.querySelector(".critter").textContent="";
+}
+
+function fx(hole,text,minus){
+  const p=hole.querySelector(".popfx");
+  p.textContent=text;
+  p.classList.remove("show","minus");
+  if(minus)p.classList.add("minus");
+  void p.offsetWidth;
+  p.classList.add("show");
+}
+
+function whack(i){
+  if(!running)return;
+  const hole=holes[i];
+  const state=hole.dataset.state;
+  if(state==="mole"){
+    score+=1;
+    scoreEl.textContent=score;
+    fx(hole,"+1",false);
+    hole.classList.add("hit");
+    if(hole.dataset.timer) clearTimeout(Number(hole.dataset.timer));
+    hole.dataset.state="empty"; hole.dataset.timer="";
+    setTimeout(()=>{hole.classList.remove("hit","up");hole.querySelector(".critter").textContent="";},170);
+  }else if(state==="bomb"){
+    score-=5;
+    scoreEl.textContent=score;
+    fx(hole,"-5",true);
+    hole.classList.add("bombhit");
+    clearHole(hole);
+    setTimeout(()=>hole.classList.remove("bombhit"),300);
+  }
+}
+
+// difficulty: as time passes, moles appear faster and stay shorter
+function spawnInterval(){
+  const elapsed=GAME_TIME-timeLeft;               // 0..30
+  const t=Math.min(elapsed/GAME_TIME,1);          // 0..1
+  const base=820-560*t;                           // 820ms -> 260ms
+  return base+Math.random()*260;
+}
+function upDuration(){
+  const t=Math.min((GAME_TIME-timeLeft)/GAME_TIME,1);
+  return 950-500*t+Math.random()*200;             // ~1150ms -> ~650ms
+}
+
+function spawn(){
+  if(!running)return;
+  const empties=[];
+  holes.forEach((h,idx)=>{if(h.dataset.state==="empty")empties.push(idx);});
+  if(empties.length){
+    const idx=empties[Math.floor(Math.random()*empties.length)];
+    const hole=holes[idx];
+    const isBomb=Math.random()<0.18;              // ~18% bomb
+    hole.dataset.state=isBomb?"bomb":"mole";
+    hole.querySelector(".critter").textContent=isBomb?"💣":"🐹";
+    hole.classList.remove("hit");
+    void hole.offsetWidth;
+    hole.classList.add("up");
+    const dur=upDuration();
+    const t=setTimeout(()=>{
+      hole.classList.remove("up");
+      const c=hole.querySelector(".critter");
+      setTimeout(()=>{if(hole.dataset.state!=="empty"){}c.textContent="";},130);
+      hole.dataset.state="empty"; hole.dataset.timer="";
+    },dur);
+    hole.dataset.timer=String(t);
+  }
+  spawnTimer=setTimeout(spawn,spawnInterval());
+}
+
+function tick(){
+  timeLeft--;
+  timeEl.textContent=timeLeft<0?0:timeLeft;
+  if(timeLeft<=0){ endGame(); return; }
+  countdownTimer=setTimeout(tick,1000);
+}
+
+function startGame(){
+  clearTimeout(countdownTimer); clearTimeout(spawnTimer);
+  holes.forEach(clearHole);
+  holes.forEach(h=>h.classList.remove("hit","bombhit","up"));
+  score=0; timeLeft=GAME_TIME; running=true;
+  scoreEl.textContent="0"; timeEl.textContent=GAME_TIME;
+  overlay.classList.remove("show");
+  startBtn.textContent="진행중...";
+  startBtn.disabled=true;
+  countdownTimer=setTimeout(tick,1000);
+  spawnTimer=setTimeout(spawn,600);
+}
+
+function endGame(){
+  running=false;
+  clearTimeout(countdownTimer); clearTimeout(spawnTimer);
+  holes.forEach(clearHole);
+  timeEl.textContent="0";
+  startBtn.textContent="시작";
+  startBtn.disabled=false;
+  finalScoreEl.textContent=score;
+  let isNew=false;
+  if(score>best){ best=score; localStorage.setItem(BEST_KEY,best); bestEl.textContent=best; isNew=true; }
+  newBestEl.style.display=isNew?"block":"none";
+  overlay.classList.add("show");
+}
+</script>
+</body>
+</html>

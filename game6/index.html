@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9606850757969636" crossorigin="anonymous"></script>
+<title>지뢰찾기 — TinyPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+@font-face{
+ font-family:'DungGeunMo';
+ src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff') format('woff');
+ font-display:swap;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f4f2;color:#202329;font-family:Arial,"Noto Sans KR",sans-serif}
+
+/* ===== 공통 헤더 (메인화면과 동일) ===== */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(7,7,15,.95);border-bottom:2px solid #28e6ff;
+ box-shadow:0 0 14px rgba(40,230,255,.35);font-family:'DungGeunMo','Press Start 2P',monospace}
+.topbar .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+.topbar .nav{display:flex;align-items:center;gap:20px;padding:14px 0}
+.topbar a{text-decoration:none}
+.topbar .logo{display:inline-block;font-family:'Press Start 2P',monospace;font-size:17px;color:#28e6ff;
+ text-shadow:0 0 5px #28e6ff,0 0 14px rgba(40,230,255,.7)}
+.topbar .logo .p2{color:#ff2fb0;text-shadow:0 0 5px #ff2fb0,0 0 14px rgba(255,47,176,.7)}
+.topbar .menu{display:flex;gap:8px;margin-left:8px}
+.topbar .menu a{font-size:13px;padding:7px 12px;border:2px solid #2a2a4d;color:#8f8fc0}
+.topbar .menu a:hover{border-color:#ffe23d;color:#ffe23d;text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .coin{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:10px;color:#ffe23d;
+ display:flex;align-items:center;gap:8px}
+.topbar .coin .inf{text-shadow:0 0 8px rgba(255,226,61,.7)}
+.topbar .search{display:flex;align-items:center;gap:8px;background:#0a0a18;border:2px solid #ff2fb0;
+ padding:8px 12px;color:#ff2fb0}
+.topbar .search input{border:0;background:transparent;color:#fff;outline:none;width:150px;
+ font-family:'DungGeunMo',monospace;font-size:15px}
+.topbar .search input::placeholder{color:#6a6a9a}
+@media(max-width:720px){.topbar .menu{display:none}.topbar .coin{display:none}.topbar .search input{width:110px}}
+.pagewrap{display:flex;justify-content:center;align-items:flex-start;gap:20px;max-width:1400px;margin:0 auto;padding:25px 18px}
+.sidead{flex:none;width:160px;min-height:600px;border:1px solid #dedfe3;background:#fff;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;position:sticky;top:84px;writing-mode:vertical-rl;letter-spacing:4px}
+.stage{max-width:1050px;flex:1;min-width:0;padding:0 0 50px}
+@media(max-width:1100px){.sidead{display:none}.pagewrap{padding:16px 10px}}
+.gtitle{padding:20px 24px}
+.gtitle h1{font-size:22px;margin:0 0 7px;font-weight:750;letter-spacing:-.5px}
+.gtitle p{margin:0;color:#777;font-size:13px}
+footer{height:110px;background:#10182d;color:#9299aa;padding:28px 34px;font-size:12px}
+
+/* ===== 게임 전용 스타일 (스코프: .mine-*) ===== */
+.mine-game{background:#0d1020;border:1px solid #1c2340;border-radius:12px;margin:0 24px 20px;padding:22px 20px 26px;
+ box-shadow:0 0 22px rgba(40,230,255,.10)}
+.mine-status{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.mine-status .box{background:#11162c;border:2px solid #28324f;border-radius:8px;padding:8px 14px;min-width:96px;text-align:center;color:#8f9bc4}
+.mine-status .box span{display:block;font-size:11px;letter-spacing:1px;margin-bottom:4px;color:#6a76a0}
+.mine-status .box b{font-size:20px;font-weight:800;font-family:'Press Start 2P',monospace;color:#28e6ff;
+ text-shadow:0 0 8px rgba(40,230,255,.6)}
+.mine-status .box.mines b{color:#ff5c7a;text-shadow:0 0 8px rgba(255,92,122,.6)}
+.mine-status .box.best b{color:#ffe23d;text-shadow:0 0 8px rgba(255,226,61,.6);font-size:14px;line-height:1.5}
+.mine-controls{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.mine-btn{background:#20263a;color:#e6ebff;border:2px solid #33406b;padding:10px 20px;font-size:14px;cursor:pointer;
+ border-radius:8px;font-family:'DungGeunMo',Arial,sans-serif}
+.mine-btn:hover{background:#2c3552;border-color:#28e6ff}
+.mine-btn.flag-active{background:#3a1030;border-color:#ff2fb0;color:#ffb3e2;box-shadow:0 0 12px rgba(255,47,176,.5)}
+.mine-boardwrap{display:flex;justify-content:center}
+.mine-board{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;width:100%;max-width:440px;
+ background:#070a16;border:3px solid #28324f;border-radius:8px;padding:6px;touch-action:manipulation}
+.mine-board.shake{animation:mineShake .45s}
+@keyframes mineShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.mine-cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+ font-weight:800;font-size:clamp(14px,4vw,22px);cursor:pointer;user-select:none;border-radius:5px;
+ background:linear-gradient(145deg,#2a3358,#1a2140);border:2px solid #3d4a7d;color:#fff;
+ box-shadow:0 0 4px rgba(40,230,255,.25);transition:background .08s}
+.mine-cell:hover{background:linear-gradient(145deg,#33406b,#222c52);border-color:#28e6ff}
+.mine-cell.revealed{background:#12162a;border:2px solid #202844;box-shadow:none;cursor:default}
+.mine-cell.revealed:hover{background:#12162a;border-color:#202844}
+.mine-cell.flag{color:#ff2fb0}
+.mine-cell.mine{background:#3a1220;border-color:#ff5c7a}
+.mine-cell.exploded{background:#ff3355;border-color:#ff8aa0;animation:mineFlash .5s}
+@keyframes mineFlash{0%,100%{background:#ff3355}50%{background:#ffe23d}}
+.mine-cell.n1{color:#4aa3ff}.mine-cell.n2{color:#4be07a}.mine-cell.n3{color:#ff6b6b}
+.mine-cell.n4{color:#c07bff}.mine-cell.n5{color:#ffb14a}.mine-cell.n6{color:#2fe0d0}
+.mine-cell.n7{color:#ff8ad4}.mine-cell.n8{color:#c9c9c9}
+.mine-overlay{display:none;position:relative;margin:16px auto 0;max-width:440px;text-align:center;
+ background:linear-gradient(135deg,#101830,#1a1240);border:2px solid #28e6ff;border-radius:10px;padding:22px;
+ box-shadow:0 0 26px rgba(40,230,255,.4)}
+.mine-overlay.show{display:block}
+.mine-overlay.lose{border-color:#ff2fb0;box-shadow:0 0 26px rgba(255,47,176,.4)}
+.mine-overlay h2{margin:0 0 8px;font-size:26px;color:#28e6ff;text-shadow:0 0 12px rgba(40,230,255,.7);
+ font-family:'DungGeunMo',Arial,sans-serif}
+.mine-overlay.lose h2{color:#ff5c7a;text-shadow:0 0 12px rgba(255,92,122,.7)}
+.mine-overlay p{margin:0 0 16px;color:#b8becb;font-size:14px}
+.mine-desc{background:#fff;border:1px solid #dedfe3;padding:22px 24px;margin:0 24px;border-radius:8px}
+.mine-desc h2{font-size:16px;margin:0 0 12px}
+.mine-desc p{margin:6px 0;color:#666;font-size:13px;line-height:1.7}
+@media(max-width:700px){.mine-game{margin:0 10px 16px}.mine-desc{margin:0 10px}.gtitle{padding:16px 12px}}
+</style>
+<style>
+/* TinyPlay 다크 테마 통일 */
+body{background:#0e0c1a!important;color:#eaeaff!important}
+.sidead{background:#15132a!important;border:1px solid #2a2a4d!important;color:#6a6a9a!important}
+.gtitle{background:transparent!important;border:none!important}
+.gtitle h1{color:#28e6ff!important}
+.gtitle p{color:#9aa0c0!important}
+.description,.desc,.mine-desc{background:#15132a!important;border:1px solid #2a2a4d!important;border-radius:12px!important}
+.description h2,.desc h2,.mine-desc h2{color:#ffe23d!important}
+.description p,.desc p,.mine-desc p{color:#c9cbe6!important}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="wrap nav">
+  <a class="logo" href="../">TINY<span class="p2">PLAY</span></a>
+  <div class="menu"><a href="../">홈</a><a href="../#games">게임</a><a href="../#about">소개</a></div>
+  <div class="coin">🪙 CREDIT&nbsp;<span class="inf">∞</span></div>
+  <div class="search">🔎<input id="q" placeholder="게임 검색..." onkeydown="if(event.key==='Enter')location.href='../#games'"></div>
+ </div>
+</header>
+
+<div class="pagewrap">
+<aside class="sidead">광고 영역</aside>
+<main class="stage">
+
+  <div class="gtitle">
+    <h1>지뢰찾기</h1>
+    <p>지뢰를 피해 모든 칸을 열어보세요!</p>
+  </div>
+
+  <section class="mine-game">
+    <div class="mine-status">
+      <div class="box mines"><span>남은 지뢰</span><b id="mineCount">10</b></div>
+      <div class="box"><span>시간</span><b id="timer">0</b></div>
+      <div class="box best"><span>최고기록</span><b id="best">-</b></div>
+    </div>
+
+    <div class="mine-controls">
+      <button class="mine-btn" id="flagBtn" onclick="toggleFlagMode()">🚩 깃발 모드: 꺼짐</button>
+      <button class="mine-btn" onclick="newGame()">새 게임</button>
+    </div>
+
+    <div class="mine-boardwrap">
+      <div class="mine-board" id="board"></div>
+    </div>
+
+    <div class="mine-overlay" id="overlay">
+      <h2 id="overlayTitle">클리어!</h2>
+      <p id="overlayMsg"></p>
+      <button class="mine-btn" onclick="newGame()">다시 시작</button>
+    </div>
+  </section>
+
+  <section class="mine-desc">
+    <h2>게임 방법</h2>
+    <p>좌클릭으로 칸을 엽니다. 첫 클릭은 항상 안전합니다.</p>
+    <p>우클릭(또는 🚩 깃발 모드)으로 지뢰가 의심되는 칸에 깃발을 꽂습니다.</p>
+    <p>숫자는 주변 8칸에 있는 지뢰의 개수입니다. 지뢰가 아닌 모든 칸을 열면 승리!</p>
+  </section>
+
+</main>
+<aside class="sidead">광고 영역</aside>
+</div>
+
+<footer>
+  <div style="margin-bottom:8px"><a href="../" style="color:#c7ccd8;text-decoration:none;margin-right:14px">홈</a><a href="../privacy/" style="color:#c7ccd8;text-decoration:none;margin-right:14px">개인정보처리방침</a><a href="../terms/" style="color:#c7ccd8;text-decoration:none;margin-right:14px">이용약관</a><a href="../contact/" style="color:#c7ccd8;text-decoration:none">문의</a></div>
+  © 2026 TinyPlay · tinyplay.kr
+</footer>
+
+<script>
+const SIZE=9, MINES=10;
+const boardEl=document.getElementById("board");
+const mineCountEl=document.getElementById("mineCount");
+const timerEl=document.getElementById("timer");
+const bestEl=document.getElementById("best");
+const overlay=document.getElementById("overlay");
+const overlayTitle=document.getElementById("overlayTitle");
+const overlayMsg=document.getElementById("overlayMsg");
+const flagBtn=document.getElementById("flagBtn");
+
+let cells=[];          // {mine,revealed,flagged,adj,el}
+let started=false;     // mines placed?
+let over=false;
+let flagMode=false;
+let flags=0;
+let revealedCount=0;
+let elapsed=0, timerId=null;
+
+let best=localStorage.getItem("tinyplayMineBest");
+bestEl.textContent = best ? best+"초" : "-";
+
+function newGame(){
+  clearInterval(timerId); timerId=null;
+  started=false; over=false; flags=0; revealedCount=0; elapsed=0;
+  timerEl.textContent="0";
+  mineCountEl.textContent=MINES;
+  overlay.classList.remove("show","lose");
+  boardEl.classList.remove("shake");
+  cells=[];
+  boardEl.innerHTML="";
+  for(let i=0;i<SIZE*SIZE;i++){
+    const el=document.createElement("div");
+    el.className="mine-cell";
+    el.dataset.i=i;
+    el.addEventListener("click",()=>onLeft(i));
+    el.addEventListener("contextmenu",e=>{e.preventDefault();onFlag(i);});
+    boardEl.appendChild(el);
+    cells.push({mine:false,revealed:false,flagged:false,adj:0,el});
+  }
+}
+
+function toggleFlagMode(){
+  flagMode=!flagMode;
+  flagBtn.textContent = "🚩 깃발 모드: " + (flagMode?"켜짐":"꺼짐");
+  flagBtn.classList.toggle("flag-active",flagMode);
+}
+
+function neighbors(i){
+  const r=Math.floor(i/SIZE), c=i%SIZE, out=[];
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+    if(dr===0&&dc===0)continue;
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE)out.push(nr*SIZE+nc);
+  }
+  return out;
+}
+
+function placeMines(safe){
+  const pool=[];
+  for(let i=0;i<SIZE*SIZE;i++) if(i!==safe) pool.push(i);
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  for(let k=0;k<MINES;k++) cells[pool[k]].mine=true;
+  for(let i=0;i<SIZE*SIZE;i++){
+    cells[i].adj = neighbors(i).filter(n=>cells[n].mine).length;
+  }
+}
+
+function startTimer(){
+  timerId=setInterval(()=>{elapsed++;timerEl.textContent=elapsed;},1000);
+}
+
+function onFlag(i){
+  if(over) return;
+  const cell=cells[i];
+  if(cell.revealed) return;
+  cell.flagged=!cell.flagged;
+  flags += cell.flagged?1:-1;
+  cell.el.classList.toggle("flag",cell.flagged);
+  cell.el.textContent = cell.flagged ? "🚩" : "";
+  mineCountEl.textContent = MINES - flags;
+}
+
+function onLeft(i){
+  if(over) return;
+  if(flagMode){ onFlag(i); return; }
+  const cell=cells[i];
+  if(cell.flagged || cell.revealed) return;
+  if(!started){ placeMines(i); started=true; startTimer(); }
+  if(cell.mine){ loseGame(i); return; }
+  flood(i);
+  checkWin();
+}
+
+function reveal(cell){
+  cell.revealed=true;
+  revealedCount++;
+  cell.el.classList.add("revealed");
+  if(cell.adj>0){
+    cell.el.textContent=cell.adj;
+    cell.el.classList.add("n"+cell.adj);
+  }
+}
+
+function flood(i){
+  const stack=[i];
+  while(stack.length){
+    const idx=stack.pop();
+    const cell=cells[idx];
+    if(cell.revealed||cell.flagged||cell.mine) continue;
+    reveal(cell);
+    if(cell.adj===0){
+      for(const n of neighbors(idx)){
+        if(!cells[n].revealed && !cells[n].flagged && !cells[n].mine) stack.push(n);
+      }
+    }
+  }
+}
+
+function loseGame(hit){
+  over=true;
+  clearInterval(timerId);
+  for(let i=0;i<cells.length;i++){
+    const c=cells[i];
+    if(c.mine){
+      c.el.classList.add("mine");
+      if(!c.flagged) c.el.textContent="💣";
+    }
+  }
+  cells[hit].el.classList.add("exploded");
+  boardEl.classList.add("shake");
+  overlay.classList.add("show","lose");
+  overlayTitle.textContent="게임 오버";
+  overlayMsg.textContent="지뢰를 밟았습니다! 다시 도전해보세요.";
+}
+
+function checkWin(){
+  if(revealedCount === SIZE*SIZE - MINES){
+    over=true;
+    clearInterval(timerId);
+    // auto-flag remaining mines
+    for(const c of cells){
+      if(c.mine && !c.flagged){ c.flagged=true; c.el.classList.add("flag"); c.el.textContent="🚩"; }
+    }
+    mineCountEl.textContent=0;
+    let msg="클리어 시간: "+elapsed+"초";
+    if(!best || elapsed < Number(best)){
+      best=elapsed;
+      localStorage.setItem("tinyplayMineBest",elapsed);
+      bestEl.textContent=elapsed+"초";
+      msg="🏆 신기록! "+elapsed+"초";
+    }
+    overlay.classList.add("show");
+    overlay.classList.remove("lose");
+    overlayTitle.textContent="클리어!";
+    overlayMsg.textContent=msg;
+  }
+}
+
+// block context menu on board wrapper too
+boardEl.addEventListener("contextmenu",e=>e.preventDefault());
+
+newGame();
+</script>
+</body>
+</html>
