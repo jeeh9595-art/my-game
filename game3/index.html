@@ -49,35 +49,96 @@ body{margin:0;background:#0e0c1a;color:#eaeaff;font-family:Arial,'Noto Sans KR',
 .gtitle p{margin:0;color:#9aa0c0;font-size:13px}
 @media(max-width:1100px){.sidead{display:none}.pagewrap{padding:18px 12px}}
 
-/* ===== 게임 ===== */
-#game{position:relative;width:100%;max-width:880px;margin:0 auto;background:#111;
- border:1px solid #2a2a4d;border-radius:12px;line-height:0;overflow:hidden}
-#art{width:100%;height:auto;display:block;user-select:none}
-#game::after{content:"";position:absolute;inset:0;pointer-events:none;
- background:radial-gradient(circle at 50% 75%,rgba(255,255,255,.08),transparent 30%);opacity:0;transition:.2s}
-#hit{position:absolute;left:50%;top:83.2%;transform:translate(-50%,-50%);
- width:18%;aspect-ratio:1;height:auto;
- border-radius:50%;cursor:pointer;background:transparent;border:0;outline:none;transition:transform .08s ease}
-#hit:hover{transform:translate(-50%,-50%) scale(1.04)}
-#hit:active{transform:translate(-50%,-50%) scale(.91)}
-#status{position:absolute;left:50%;bottom:2.5%;transform:translateX(-50%);
- font:700 clamp(14px,1.6vw,22px)/1.2 Arial,'Noto Sans KR',sans-serif;color:#fff;
- text-shadow:0 2px 5px #000;pointer-events:none;white-space:nowrap}
-#result{position:absolute;left:50%;top:65%;transform:translate(-50%,-50%) scale(.7);
- padding:14px 24px;border-radius:14px;background:rgba(0,0,0,.78);
- color:#fff;font:800 clamp(20px,3vw,40px) Arial,'Noto Sans KR',sans-serif;
- display:none;pointer-events:none;white-space:nowrap}
-#result.show{display:block;animation:pop .35s cubic-bezier(.2,1.5,.4,1) forwards}
-@keyframes pop{to{transform:translate(-50%,-50%) scale(1)}}
-#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
-#flash.go{animation:flash .22s ease-out}
-@keyframes flash{0%{opacity:.42}100%{opacity:0}}
-#game.success{animation:shake .22s ease-out}
-#game.fail{animation:shake .16s ease-out}
-@keyframes shake{
-  0%{transform:translateX(0)}25%{transform:translateX(-5px)}
-  50%{transform:translateX(5px)}75%{transform:translateX(-3px)}100%{transform:translateX(0)}
+/* ===== 게임 (3:2 박스, 내부는 컨테이너 기준 cqw로 스케일) ===== */
+#game{position:relative;width:100%;max-width:880px;aspect-ratio:3/2;margin:0 auto;overflow:hidden;
+ background:#111;border:1px solid #2a2a4d;border-radius:12px;container-type:inline-size}
+#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;user-select:none}
+
+.char{position:absolute;pointer-events:none;transform-origin:50% 90%}
+#left{left:6.51%;top:9.28%;width:16.28%;height:34.18%}
+#right{left:77.47%;top:20.02%;width:19.53%;height:23.44%;transform-origin:50% 100%}
+.char img{width:100%;height:100%;display:block}
+
+.dancing#left{animation:leftDance 1.05s ease-in-out infinite}
+.dancing#right{animation:rightDance 1.18s ease-in-out infinite}
+.still{animation:none!important;transform:none!important}
+
+@keyframes leftDance{
+0%,100%{transform:translate(0,0) rotate(-2deg) scale(1)}
+25%{transform:translate(-3px,-5px) rotate(3deg) scale(1.015,.985)}
+50%{transform:translate(2px,-1px) rotate(-3deg) scale(.985,1.02)}
+75%{transform:translate(4px,-5px) rotate(2deg) scale(1.015,.985)}
 }
+@keyframes rightDance{
+0%,100%{transform:translate(0,0) rotate(2deg) scale(1)}
+25%{transform:translate(3px,-4px) rotate(-3deg) scale(1.02,.98)}
+50%{transform:translate(-2px,-1px) rotate(3deg) scale(.98,1.02)}
+75%{transform:translate(-4px,-4px) rotate(-2deg) scale(1.02,.98)}
+}
+
+#buttonText{
+position:absolute;z-index:10;
+left:50%;top:82.4%;
+transform:translate(-50%,-50%);
+font-weight:900;
+font-size:clamp(16px,4.4cqw,66px);
+line-height:1;
+letter-spacing:-2px;
+color:#fff;
+text-shadow:0 3px 0 #c85a14,2px 0 0 #c85a14,-2px 0 0 #c85a14;
+pointer-events:none;
+white-space:nowrap;
+}
+#hit{
+position:absolute;z-index:11;
+left:50%;top:82.4%;
+transform:translate(-50%,-50%);
+width:18%;height:18%;
+border:0;background:transparent;border-radius:50%;
+cursor:pointer;outline:none;
+}
+#hit:active{transform:translate(-50%,-50%) scale(.94)}
+
+#bestRecord{
+position:absolute;z-index:10;
+left:82.7%;top:80.2%;
+width:9.0%;height:4.0%;
+display:flex;align-items:center;justify-content:center;
+font-weight:900;
+font-size:clamp(9px,1.35cqw,20px);
+letter-spacing:-1px;
+color:#ffbf00;
+text-shadow:0 1px 0 rgba(255,255,255,.45);
+pointer-events:none;
+white-space:nowrap;
+}
+
+#status{
+position:absolute;z-index:12;
+left:50%;bottom:1.2%;
+transform:translateX(-50%);
+color:#fff;font-weight:800;
+font-size:clamp(12px,1.6cqw,22px);
+text-shadow:0 2px 4px #000;
+white-space:nowrap;pointer-events:none;
+}
+#result{
+position:absolute;z-index:12;
+left:50%;top:68%;
+transform:translate(-50%,-50%) scale(.75);
+display:none;padding:12px 22px;border-radius:14px;
+background:rgba(0,0,0,.78);color:#fff;
+font-size:clamp(18px,3.5cqw,48px);font-weight:900;
+white-space:nowrap;
+}
+#result.show{display:block;animation:pop .28s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes pop{to{transform:translate(-50%,-50%) scale(1)}}
+
+#flash{position:absolute;inset:0;z-index:30;pointer-events:none;opacity:0;background:#fff}
+#flash.go{animation:flash .22s ease-out}
+@keyframes flash{0%{opacity:.35}100%{opacity:0}}
+#game.shake{animation:shake .2s ease-out}
+@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}100%{transform:translateX(0)}}
 </style>
 </head>
 <body>
@@ -98,9 +159,19 @@ body{margin:0;background:#0e0c1a;color:#eaeaff;font-family:Arial,'Noto Sans KR',
     <h1>10초에 딱 맞춰서 STOP!</h1>
     <p>START를 누르고, 정확히 10초에 다시 눌러 멈추세요.</p>
   </div>
+
   <div id="game">
-    <img id="art" src="art.png" alt="10초 STOP 게임">
-    <button id="hit" aria-label="START 또는 STOP"></button>
+    <img id="bg" src="bg.png" alt="10초 STOP 게임 배경">
+    <div id="left" class="char dancing"><img src="char_left.png" alt=""></div>
+    <div id="right" class="char dancing"><img src="char_right.png" alt=""></div>
+
+    <!-- 버튼 그림은 이미지에 그대로 있고, 여기서는 글자만 바꾼다 -->
+    <div id="buttonText">START</div>
+    <button id="hit" aria-label="START"></button>
+
+    <!-- 최고 기록 숫자도 이미지 위에 텍스트로 직접 표시 -->
+    <div id="bestRecord">---.---초</div>
+
     <div id="result"></div>
     <div id="status">START를 눌러 시작하세요</div>
     <div id="flash"></div>
@@ -110,85 +181,117 @@ body{margin:0;background:#0e0c1a;color:#eaeaff;font-family:Arial,'Noto Sans KR',
 </div>
 
 <script>
-const hit=document.getElementById('hit');
-const status=document.getElementById('status');
-const result=document.getElementById('result');
 const game=document.getElementById('game');
+const left=document.getElementById('left');
+const right=document.getElementById('right');
+const hit=document.getElementById('hit');
+const buttonText=document.getElementById('buttonText');
+const bestRecord=document.getElementById('bestRecord');
+const result=document.getElementById('result');
+const status=document.getElementById('status');
 const flash=document.getElementById('flash');
 
-let state='ready', startTime=0, audioCtx=null;
+let running=false;
+let startTime=0;
+let audioCtx=null;
 
-function sound(type){
-  // 외부 음원 파일 없이 브라우저에서 직접 짧은 효과음을 생성
+let bestDiff=Number(localStorage.getItem('tinyplayBestDiff') || 'Infinity');
+let bestTime=Number(localStorage.getItem('tinyplayBestTime') || 'NaN');
+
+function renderBest(){
+  bestRecord.textContent=Number.isFinite(bestTime)
+    ? bestTime.toFixed(3)+'초'
+    : '---.---초';
+}
+renderBest();
+
+function beep(type){
   audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();
-  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.connect(g); g.connect(audioCtx.destination);
-  const now=audioCtx.currentTime;
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  const n=audioCtx.currentTime;
   if(type==='start'){
-    o.type='sine'; o.frequency.setValueAtTime(260,now);
-    o.frequency.exponentialRampToValueAtTime(520,now+.12);
-    g.gain.setValueAtTime(.0001,now); g.gain.exponentialRampToValueAtTime(.16,now+.015);
-    g.gain.exponentialRampToValueAtTime(.0001,now+.16); o.start(now); o.stop(now+.17);
-  } else if(type==='click'){
-    o.type='square'; o.frequency.setValueAtTime(180,now);
-    g.gain.setValueAtTime(.0001,now); g.gain.exponentialRampToValueAtTime(.10,now+.008);
-    g.gain.exponentialRampToValueAtTime(.0001,now+.06); o.start(now); o.stop(now+.07);
-  } else if(type==='perfect'){
-    o.type='sine'; o.frequency.setValueAtTime(523,now);
-    o.frequency.setValueAtTime(659,now+.08); o.frequency.setValueAtTime(784,now+.16);
-    g.gain.setValueAtTime(.0001,now); g.gain.exponentialRampToValueAtTime(.18,now+.015);
-    g.gain.exponentialRampToValueAtTime(.0001,now+.28); o.start(now); o.stop(now+.29);
-  } else {
-    o.type='sawtooth'; o.frequency.setValueAtTime(180,now);
-    o.frequency.exponentialRampToValueAtTime(90,now+.18);
-    g.gain.setValueAtTime(.0001,now); g.gain.exponentialRampToValueAtTime(.12,now+.015);
-    g.gain.exponentialRampToValueAtTime(.0001,now+.2); o.start(now); o.stop(now+.21);
+    o.frequency.setValueAtTime(330,n);
+    o.frequency.exponentialRampToValueAtTime(620,n+.12);
+  }else if(type==='stop'){
+    o.frequency.setValueAtTime(520,n);
+    o.frequency.exponentialRampToValueAtTime(240,n+.12);
+  }else{
+    o.frequency.setValueAtTime(520,n);
+    o.frequency.setValueAtTime(660,n+.08);
+    o.frequency.setValueAtTime(790,n+.16);
   }
+  g.gain.setValueAtTime(.0001,n);
+  g.gain.exponentialRampToValueAtTime(.13,n+.01);
+  g.gain.exponentialRampToValueAtTime(.0001,n+.22);
+  o.start(n);o.stop(n+.23);
 }
 
-function pulse(cls){
-  game.classList.remove(cls);
-  void game.offsetWidth;
-  game.classList.add(cls);
-}
-
-function flashNow(){
-  flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
+function setDance(on){
+  left.classList.toggle('dancing',on);
+  right.classList.toggle('dancing',on);
+  left.classList.toggle('still',!on);
+  right.classList.toggle('still',!on);
 }
 
 function startGame(){
-  sound('start');
-  state='running';
+  running=true;
   startTime=performance.now();
+  setDance(false);
+
+  buttonText.textContent='STOP';
+  hit.setAttribute('aria-label','STOP');
   result.classList.remove('show');
-  status.textContent='10.00초에 맞춰 다시 클릭!';
+  status.textContent='10.00초에 맞춰 STOP!';
+  beep('start');
 }
 
 function stopGame(){
+  running=false;
   const elapsed=(performance.now()-startTime)/1000;
-  const diff=elapsed-10;
-  const abs=Math.abs(diff);
-  state='result';
-  sound(abs<=.05?'perfect':'fail');
-  flashNow();
-  pulse(abs<=.05?'success':'fail');
-  result.textContent=abs<=.05
+  const diff=Math.abs(elapsed-10);
+
+  if(diff<bestDiff || (Math.abs(diff-bestDiff)<0.0005 && elapsed<bestTime)){
+    bestDiff=diff;
+    bestTime=elapsed;
+    localStorage.setItem('tinyplayBestDiff',String(bestDiff));
+    localStorage.setItem('tinyplayBestTime',String(bestTime));
+    renderBest();
+  }
+
+  setDance(true);
+  buttonText.textContent='START';
+  hit.setAttribute('aria-label','START');
+
+  result.textContent=diff<=.05
     ? `${elapsed.toFixed(3)}초  🎯 PERFECT!`
-    : `${elapsed.toFixed(3)}초  |  오차 ${abs.toFixed(3)}초`;
-  result.classList.remove('show'); void result.offsetWidth; result.classList.add('show');
-  status.textContent=abs<=.05
-    ? '완벽합니다! 다시 START를 눌러 도전하세요'
-    : '다시 하려면 START를 클릭하세요';
+    : `${elapsed.toFixed(3)}초  |  오차 ${diff.toFixed(3)}초`;
+
+  result.classList.remove('show');
+  void result.offsetWidth;
+  result.classList.add('show');
+
+  status.textContent='다시 START를 눌러 도전하세요';
+  flash.classList.remove('go');
+  void flash.offsetWidth;
+  flash.classList.add('go');
+
+  game.classList.remove('shake');
+  void game.offsetWidth;
+  game.classList.add('shake');
+
+  beep(diff<=.05?'perfect':'stop');
 }
 
-hit.addEventListener('click',()=>{
-  sound('click');
-  if(state==='ready'||state==='result') startGame();
-  else stopGame();
-});
+hit.addEventListener('click',()=>running?stopGame():startGame());
 
 document.addEventListener('keydown',e=>{
-  if(e.code==='Space'){e.preventDefault();hit.click();}
+  if(e.code==='Space'){
+    e.preventDefault();
+    hit.click();
+  }
 });
 </script>
 </body>
