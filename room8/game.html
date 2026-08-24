@@ -210,7 +210,7 @@ var HALL_R=10, ROOM_D=17.5, ROOM_W=6.6, ROOM_L=6.2, DOOR_W=2.6, WALL_H=3.2, WALL
 var scene,camera,renderer,clock,hemi,hallLamp,roomLights=[],doors=[],consoles=[];
 var colliders=[], avatars={}, meMesh=null, hallScreen=null;
 var MAILBOX=[], mailMesh=[], objMesh={}, OBJS=[];
-var HAND_F=0.55, HAND_H=1.15;   // 손 위치(앞으로, 높이)
+var HAND_F=0.52, HAND_H=0.86;   // 손 위치(앞으로, 높이)
 
 function roomAngle(i){ return -PI/2+i*(PI*2/MAXP); }
 function roomCenter(i){ var a=roomAngle(i); return {x:Math.cos(a)*ROOM_D,z:Math.sin(a)*ROOM_D,a:a}; }
@@ -493,12 +493,15 @@ function makeLabel(text,color,size){
 }
 
 /* ============ 아바타 ============ */
-/* 관절 인형: 골반 기준으로 몸통, 머리, 양팔(어깨/팔꿈치), 양다리(엉덩이/무릎) */
-var HIP_Y=0.92;
+/* 캐릭터: 몸 전체가 한 가지 색. 사람마다 그 색만 다르다.
+   큰 머리, 통통한 몸, 짧고 뭉툭한 팔다리. 얼굴은 눈 두 개뿐. */
+var HIP_Y=0.72;
+var EYE_MAT=new THREE.MeshStandardMaterial({color:0x191c22,roughness:0.35});
+
 function limb(parent,len,rad,mat,x,y,z){
   var joint=new THREE.Group();
   joint.position.set(x||0,y||0,z||0);
-  var m=new THREE.Mesh(new THREE.CapsuleGeometry(rad,Math.max(0.01,len-rad*2),3,10),mat);
+  var m=new THREE.Mesh(new THREE.CapsuleGeometry(rad,Math.max(0.01,len-rad*2),4,12),mat);
   m.position.y=-len/2; m.castShadow=true;
   joint.add(m);
   parent.add(joint);
@@ -508,48 +511,60 @@ function limb(parent,len,rad,mat,x,y,z){
 function makeAvatar(name,slot){
   var col=ROOM_COLORS[slot%8];
   var g=new THREE.Group();
-  var mat=new THREE.MeshStandardMaterial({color:col,roughness:0.55});
-  var skin=new THREE.MeshStandardMaterial({color:0xf2f4f7,roughness:0.6});
+  var mat=new THREE.MeshStandardMaterial({color:col,roughness:0.62,metalness:0.0});
 
   var hip=new THREE.Group(); hip.position.y=HIP_Y; g.add(hip);
 
-  var torso=new THREE.Mesh(new THREE.CapsuleGeometry(0.26,0.34,4,14),mat);
-  torso.position.y=0.30; torso.castShadow=true; hip.add(torso);
+  // 몸통 — 짧고 통통하게
+  var torso=new THREE.Mesh(new THREE.CapsuleGeometry(0.30,0.26,5,16),mat);
+  torso.position.y=0.24; torso.castShadow=true; hip.add(torso);
 
-  var neck=new THREE.Group(); neck.position.y=0.60; hip.add(neck);
-  var head=new THREE.Mesh(new THREE.SphereGeometry(0.235,20,14),mat);
-  head.position.y=0.13; head.castShadow=true; neck.add(head);
-  var nose=new THREE.Mesh(new THREE.SphereGeometry(0.07,10,8),skin);
-  nose.position.set(0,0.13,0.22); neck.add(nose);
+  // 머리 — 목 없이 몸 위에 바로. 크게.
+  var neck=new THREE.Group(); neck.position.y=0.54; hip.add(neck);
+  var head=new THREE.Mesh(new THREE.SphereGeometry(0.34,24,18),mat);
+  head.position.y=0.26; head.castShadow=true; neck.add(head);
 
-  var armL=limb(hip,0.32,0.085,mat, 0.31,0.50,0);
-  var elbL=limb(armL,0.30,0.075,mat, 0,-0.32,0);
-  var handL=new THREE.Mesh(new THREE.SphereGeometry(0.095,10,8),skin);
-  handL.position.y=-0.30; handL.castShadow=true; elbL.add(handL);
+  // 눈 두 개 (모두 같은 검정)
+  [-1,1].forEach(function(sd){
+    var eye=new THREE.Mesh(new THREE.SphereGeometry(0.055,12,10),EYE_MAT);
+    eye.position.set(sd*0.125,0.30,0.30);
+    eye.scale.set(1,1.15,0.6);
+    neck.add(eye);
+  });
 
-  var armR=limb(hip,0.32,0.085,mat,-0.31,0.50,0);
-  var elbR=limb(armR,0.30,0.075,mat, 0,-0.32,0);
-  var handR=new THREE.Mesh(new THREE.SphereGeometry(0.095,10,8),skin);
-  handR.position.y=-0.30; handR.castShadow=true; elbR.add(handR);
+  // 팔 — 짧고 뭉툭, 손도 같은 색
+  var armL=limb(hip,0.24,0.105,mat, 0.30,0.40,0);
+  var elbL=limb(armL,0.22,0.100,mat, 0,-0.24,0);
+  var handL=new THREE.Mesh(new THREE.SphereGeometry(0.115,12,10),mat);
+  handL.position.y=-0.22; handL.castShadow=true; elbL.add(handL);
 
-  var legL=limb(hip,0.44,0.115,mat, 0.145,0,0);
-  var kneL=limb(legL,0.42,0.095,mat, 0,-0.44,0);
-  var footL=new THREE.Mesh(new THREE.BoxGeometry(0.19,0.1,0.3),skin);
-  footL.position.set(0,-0.44,0.06); footL.castShadow=true; kneL.add(footL);
+  var armR=limb(hip,0.24,0.105,mat,-0.30,0.40,0);
+  var elbR=limb(armR,0.22,0.100,mat, 0,-0.24,0);
+  var handR=new THREE.Mesh(new THREE.SphereGeometry(0.115,12,10),mat);
+  handR.position.y=-0.22; handR.castShadow=true; elbR.add(handR);
 
-  var legR=limb(hip,0.44,0.115,mat,-0.145,0,0);
-  var kneR=limb(legR,0.42,0.095,mat, 0,-0.44,0);
-  var footR=new THREE.Mesh(new THREE.BoxGeometry(0.19,0.1,0.3),skin);
-  footR.position.set(0,-0.44,0.06); footR.castShadow=true; kneR.add(footR);
+  // 다리 — 짧게, 발도 같은 색 둥근 덩어리
+  var legL=limb(hip,0.34,0.135,mat, 0.155,0,0);
+  var kneL=limb(legL,0.30,0.125,mat, 0,-0.34,0);
+  var footL=new THREE.Mesh(new THREE.SphereGeometry(0.145,12,10),mat);
+  footL.position.set(0,-0.29,0.035); footL.scale.set(1,0.8,1.25);
+  footL.castShadow=true; kneL.add(footL);
+
+  var legR=limb(hip,0.34,0.135,mat,-0.155,0,0);
+  var kneR=limb(legR,0.30,0.125,mat, 0,-0.34,0);
+  var footR=new THREE.Mesh(new THREE.SphereGeometry(0.145,12,10),mat);
+  footR.position.set(0,-0.29,0.035); footR.scale.set(1,0.8,1.25);
+  footR.castShadow=true; kneR.add(footR);
 
   var lab=makeLabel(name,"#ffffff",44);
-  lab.position.y=2.30; lab.scale.set(2.2,1.1,1); g.add(lab);
-  var ring=new THREE.Mesh(new THREE.RingGeometry(0.42,0.52,24),
-    new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.7,side:THREE.DoubleSide}));
-  ring.rotation.x=-PI/2; ring.position.y=0.05; g.add(ring);
+  lab.position.y=1.86; lab.scale.set(2.0,1.0,1); g.add(lab);
+
+  var ring=new THREE.Mesh(new THREE.RingGeometry(0.40,0.48,26),
+    new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.55,side:THREE.DoubleSide}));
+  ring.rotation.x=-PI/2; ring.position.y=0.04; g.add(ring);
 
   scene.add(g);
-  return {group:g,hip:hip,torso:torso,neck:neck,mat:mat,lab:lab,ring:ring,
+  return {group:g,hip:hip,torso:torso,neck:neck,head:head,mat:mat,lab:lab,ring:ring,
           armL:armL,armR:armR,elbL:elbL,elbR:elbR,
           legL:legL,legR:legR,kneL:kneL,kneR:kneR,
           tx:0,tz:0,tr:0,ty:0,phase:0,mode:0,air:0,punch:0,pc:0};
@@ -794,7 +809,7 @@ function updateCamera(dt){
   dt=dt||0.016;
   var cy=Math.cos(camPitch),sy=Math.sin(camPitch);
   var wantX=me.x-Math.sin(camYaw)*camDist*cy;
-  var wantY=1.5+me.y*0.75+camDist*sy;
+  var wantY=1.2+me.y*0.75+camDist*sy;
   var wantZ=me.z-Math.cos(camYaw)*camDist*cy;
 
   var k=Math.min(1,dt*11);
@@ -808,7 +823,7 @@ function updateCamera(dt){
 
   var lk=Math.min(1,dt*14);
   camLook.x+=(me.x-camLook.x)*lk;
-  camLook.y+=((1.3+me.y)-camLook.y)*lk;
+  camLook.y+=((1.05+me.y)-camLook.y)*lk;
   camLook.z+=(me.z-camLook.z)*lk;
   camera.lookAt(camLook);
 
@@ -1775,7 +1790,7 @@ function poseAvatar(a,dt){
     lerpRot(a.kneL,"x", 1.55,dt,9); lerpRot(a.kneR,"x", 1.55,dt,9);
     lerpRot(a.armL,"x", 0.25,dt,9); lerpRot(a.armR,"x", 0.25,dt,9);
     lerpRot(a.elbL,"x", 0.35,dt,9); lerpRot(a.elbR,"x", 0.35,dt,9);
-    a.hip.position.y+=((HIP_Y-0.42)-a.hip.position.y)*Math.min(1,dt*9);
+    a.hip.position.y+=((HIP_Y-0.30)-a.hip.position.y)*Math.min(1,dt*9);
     lerpRot(a.torso,"x",0.12,dt,9);
     a.group.position.y=a.ty||0;
     return;
