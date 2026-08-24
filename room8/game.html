@@ -165,6 +165,10 @@
         <div class="muted" style="margin-bottom:10px;">방장도 같이 플레이합니다. 방장이 나가면 방이 닫힙니다.</div>
         <button class="w ghost" id="btnHost">새 방 만들기</button></div>
       <div class="muted" style="text-align:center;"><a href="./" style="color:#7d8894;">← 규칙 보기</a></div>
+      <div class="muted" style="text-align:center;margin-top:14px;font-size:11px;line-height:1.7;">
+        캐릭터 모델 “Hyper Casual Character” by J-Toastie<br>
+        (poly.pizza · CC BY 3.0) · 동작 Mixamo
+      </div>
     </div>
 
     <div id="stepLobby" class="hidden">
@@ -512,19 +516,60 @@ function limb(parent,len,rad,mat,x,y,z){
 }
 
 /* ================= 캐릭터 모델 =================
-   Mixamo 규격 스킨 모델을 불러와 쓴다.
-   못 불러오면 아래 도형 캐릭터로 자동 대체된다. */
-var CHAR={state:"loading",proto:null,clips:{}};
-var CHAR_FILE="char/Xbot.glb";
+   외형: Hyper Casual Character (J-Toastie, poly.pizza, CC BY 3.0)
+   동작: Mixamo 규격 클립을 옮겨 붙인다. 두 모델 모두 mixamorig 뼈대라 이름이 맞는다. */
+var CHAR={state:"loading",proto:null,clips:{},scale:1,yOff:0};
+var CHAR_FILE="char/hc.glb";      // 외형
+var ANIM_FILE="char/Xbot.glb";    // 동작 제공용
+var CHAR_HEIGHT=1.72;             // 이 키에 맞춰 자동으로 크기를 맞춘다
+
+function hipsY(root){
+  var h=root.getObjectByName("mixamorig:Hips");
+  return h?h.position.y:1;
+}
+
+/* 다른 체격의 클립을 가져올 때 골반 높이 비율만큼 위치 트랙을 줄인다 */
+function adaptClip(clip,ratio){
+  var c=clip.clone();
+  c.tracks=c.tracks.filter(function(t){ return t.name.indexOf(".scale")<0; });
+  c.tracks.forEach(function(t){
+    if(t.name.indexOf(".position")>=0){
+      var v=t.values;
+      for(var i=0;i<v.length;i++) v[i]*=ratio;
+    }
+  });
+  return c;
+}
 
 function loadCharacter(){
   if(!THREE.GLTFLoader){ CHAR.state="failed"; return; }
+  var L=new THREE.GLTFLoader();
   try{
-    new THREE.GLTFLoader().load(CHAR_FILE,function(gltf){
-      CHAR.proto=gltf.scene;
-      (gltf.animations||[]).forEach(function(c){ CHAR.clips[c.name]=c; });
-      CHAR.state="ready";
-      if($("btnEnter")) $("btnEnter").textContent="공간으로 들어가기";
+    L.load(CHAR_FILE,function(g1){
+      CHAR.proto=g1.scene;
+
+      // 실제 키를 재서 세계 크기에 맞춘다
+      var box=new THREE.Box3().setFromObject(CHAR.proto);
+      var h=box.max.y-box.min.y;
+      if(h>0.05&&h<50){
+        CHAR.scale=Math.max(0.2,Math.min(10,CHAR_HEIGHT/h));
+        CHAR.yOff=-box.min.y*CHAR.scale;
+      }
+      var hcHip=hipsY(CHAR.proto);
+
+      L.load(ANIM_FILE,function(g2){
+        var srcHip=hipsY(g2.scene)||1;
+        var ratio=srcHip?(hcHip/srcHip):1;
+        (g2.animations||[]).forEach(function(c){
+          if(["idle","walk","run"].indexOf(c.name)<0) return;
+          CHAR.clips[c.name]=adaptClip(c,ratio);
+        });
+        CHAR.state="ready";
+        if($("btnEnter")) $("btnEnter").textContent="공간으로 들어가기";
+      },undefined,function(){
+        CHAR.state="ready";   // 동작이 없어도 외형은 쓴다
+        if($("btnEnter")) $("btnEnter").textContent="공간으로 들어가기";
+      });
     },undefined,function(){ CHAR.state="failed"; });
   }catch(e){ CHAR.state="failed"; }
 }
@@ -548,94 +593,28 @@ function rightAxis(a){
   return _axR;
 }
 
-/* 시안 형태의 도형을 모션캡처 뼈대에 붙인다.
-   Xbot 메시는 숨기고 뼈대만 쓴다 → 겉모습은 우리가 정하고, 움직임은 진짜 사람 움직임. */
-var CHAR_TUNE={
-  head:0.30,        // 머리 반지름
-  headUp:0.09,      // 머리를 목 위로 올리는 정도
-  torsoR:0.215,     // 몸통 굵기
-  torsoW:1.28,      // 몸통 좌우 폭 배율
-  torsoD:0.82,      // 몸통 앞뒤 두께 배율
-  armR:0.098,       // 위팔 굵기
-  foreR:0.090,      // 아래팔 굵기
-  handR:0.112,      // 손 크기
-  thighR:0.145,     // 허벅지 굵기
-  shinR:0.125,      // 종아리 굵기
-  footR:0.135       // 발 크기
-};
-
-function boneCapsule(parentBone,childBone,radius,mat){
-  if(!parentBone||!childBone) return null;
-  var v=childBone.position.clone();
-  var len=v.length();
-  if(len<0.001) return null;
-  var m=new THREE.Mesh(
-    new THREE.CapsuleGeometry(radius,Math.max(0.01,len-radius*2),5,14),mat);
-  m.position.copy(v).multiplyScalar(0.5);
-  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.clone().normalize());
-  m.castShadow=true;
-  parentBone.add(m);
-  return m;
-}
-function boneBlob(bone,radius,mat,sx,sy,sz,ox,oy,oz){
-  if(!bone) return null;
-  var m=new THREE.Mesh(new THREE.SphereGeometry(radius,18,14),mat);
-  m.scale.set(sx||1,sy||1,sz||1);
-  m.position.set(ox||0,oy||0,oz||0);
-  m.castShadow=true;
-  bone.add(m);
-  return m;
-}
-
 function makeSkinnedAvatar(name,slot){
   var col=ROOM_COLORS[slot%8];
   var g=new THREE.Group();
   var model=THREE.SkeletonUtils.clone(CHAR.proto);
-  // 원본 메시는 숨기고 뼈대만 활용
-  model.traverse(function(o){ if(o.isMesh||o.isSkinnedMesh) o.visible=false; });
+  model.scale.setScalar(CHAR.scale);
+  model.position.y=CHAR.yOff;
   g.add(model);
 
+  // 재질을 하나로 덮어써서 사람마다 색만 다르게
   var mat=new THREE.MeshStandardMaterial({color:col,roughness:0.72,metalness:0.0});
+  model.traverse(function(o){
+    if(o.isMesh||o.isSkinnedMesh){
+      o.material=mat; o.castShadow=true; o.frustumCulled=false;
+    }
+  });
+
   function bone(n){ return model.getObjectByName("mixamorig:"+n); }
-  var B={hips:bone("Hips"),spine:bone("Spine"),spine1:bone("Spine1"),spine2:bone("Spine2"),
-         neck:bone("Neck"),head:bone("Head"),
-         armL:bone("LeftArm"),foreL:bone("LeftForeArm"),handL:bone("LeftHand"),
-         armR:bone("RightArm"),foreR:bone("RightForeArm"),handR:bone("RightHand"),
-         legL:bone("LeftUpLeg"),kneeL:bone("LeftLeg"),footL:bone("LeftFoot"),
-         legR:bone("RightUpLeg"),kneeR:bone("RightLeg"),footR:bone("RightFoot")};
-
-  var T=CHAR_TUNE;
-
-  // 골반 + 몸통 — 서로 겹쳐서 하나의 덩어리로 보이게
-  boneBlob(B.hips,0.19,mat,T.torsoW,0.95,T.torsoD,0,0.03,0);
-  var chest=boneBlob(B.spine1,T.torsoR,mat,T.torsoW,1.45,T.torsoD,0,0.11,0);
-  boneBlob(B.spine,T.torsoR*0.95,mat,T.torsoW*0.98,1.0,T.torsoD,0,0.05,0);
-
-  // 머리 — 크게, 목을 덮도록
-  boneBlob(B.head,T.head,mat,1,1,1,0,T.headUp,0.01);
-  boneBlob(B.neck,0.115,mat,1.35,1.3,1.2,0,0.03,0);
-
-  // 팔
-  boneCapsule(B.armL,B.foreL,T.armR,mat);
-  boneCapsule(B.foreL,B.handL,T.foreR,mat);
-  boneBlob(B.handL,T.handR,mat,0.92,1.05,0.85,0,0.02,0);
-  boneCapsule(B.armR,B.foreR,T.armR,mat);
-  boneCapsule(B.foreR,B.handR,T.foreR,mat);
-  boneBlob(B.handR,T.handR,mat,0.92,1.05,0.85,0,0.02,0);
-  // 어깨 이음새
-  boneBlob(B.armL,T.armR*1.25,mat,1,1,1,0,0,0);
-  boneBlob(B.armR,T.armR*1.25,mat,1,1,1,0,0,0);
-
-  // 다리
-  boneCapsule(B.legL,B.kneeL,T.thighR,mat);
-  boneCapsule(B.kneeL,B.footL,T.shinR,mat);
-  boneBlob(B.footL,T.footR,mat,1.0,0.62,1.55,0,0.0,0.05);
-  boneCapsule(B.legR,B.kneeR,T.thighR,mat);
-  boneCapsule(B.kneeR,B.footR,T.shinR,mat);
-  boneBlob(B.footR,T.footR,mat,1.0,0.62,1.55,0,0.0,0.05);
-  // 엉덩이 이음새
-  boneBlob(B.legL,T.thighR*1.1,mat,1,1,1,0,0,0);
-  boneBlob(B.legR,T.thighR*1.1,mat,1,1,1,0,0,0);
+  var B={hips:bone("Hips"),spine:bone("Spine1"),
+         armL:bone("LeftArm"),foreL:bone("LeftForeArm"),
+         armR:bone("RightArm"),foreR:bone("RightForeArm"),
+         legL:bone("LeftUpLeg"),kneeL:bone("LeftLeg"),
+         legR:bone("RightUpLeg"),kneeR:bone("RightLeg")};
 
   var mixer=new THREE.AnimationMixer(model);
   var act={};
@@ -647,7 +626,7 @@ function makeSkinnedAvatar(name,slot){
   });
 
   var lab=makeLabel(name,"#ffffff",44);
-  lab.position.y=1.98; lab.scale.set(2.0,1.0,1); g.add(lab);
+  lab.position.y=CHAR_HEIGHT+0.28; lab.scale.set(2.0,1.0,1); g.add(lab);
   var ring=new THREE.Mesh(new THREE.RingGeometry(0.40,0.48,26),
     new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.45,side:THREE.DoubleSide}));
   ring.rotation.x=-PI/2; ring.position.y=0.04; g.add(ring);
@@ -1965,7 +1944,7 @@ function poseSkinned(a,dt){
   if(a.emote===1){                       // 앉기
     worldSpin(B.legL,ax,SGN.leg*1.5); worldSpin(B.legR,ax,SGN.leg*1.5);
     worldSpin(B.kneeL,ax,SGN.knee*1.5); worldSpin(B.kneeR,ax,SGN.knee*1.5);
-    a.group.position.y=(a.ty||0)-0.34;
+    a.group.position.y=(a.ty||0)-0.36;
   } else if(a.emote===2){                // 손 흔들기
     worldSpin(B.armR,ax,SGN.arm*2.4);
     worldSpin(B.foreR,_axU,Math.sin(a.t*11)*0.6);
