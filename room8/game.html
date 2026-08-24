@@ -596,10 +596,18 @@ function hipsY(root){
   return h?h.position.y:1;
 }
 
-/* 다른 체격의 클립을 가져올 때 골반 높이 비율만큼 위치 트랙을 줄인다 */
+/* 다른 체격의 클립을 가져다 쓸 때:
+   - 회전 트랙만 그대로 쓴다 (체격이 달라도 관절 각도는 통한다)
+   - 골반 위치 트랙만 남기고 비율로 환산한다
+   - 나머지 뼈의 위치·크기 트랙은 버린다.
+     그걸 남기면 원본 체격의 뼈 간격을 강제로 덮어써서 몸이 한 점으로 뭉개진다. */
 function adaptClip(clip,ratio){
   var c=clip.clone();
-  c.tracks=c.tracks.filter(function(t){ return t.name.indexOf(".scale")<0; });
+  c.tracks=c.tracks.filter(function(t){
+    if(t.name.indexOf(".scale")>=0) return false;
+    if(t.name.indexOf(".position")>=0) return t.name.indexOf("Hips")>=0;
+    return true;
+  });
   c.tracks.forEach(function(t){
     if(t.name.indexOf(".position")>=0){
       var v=t.values;
