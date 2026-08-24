@@ -149,6 +149,13 @@
         <div id="szVal" style="font-size:11px;color:#45c2b7;margin-top:5px;
              font-variant-numeric:tabular-nums;">-</div>
         <div id="szInfo" style="font-size:9.5px;color:#5f6a76;margin-top:2px;"></div>
+        <div style="margin-top:7px;border-top:1px solid #2a323b;padding-top:7px;
+             display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap;">
+          <button id="btnAnim" style="padding:5px 8px;font-size:11px;">애니 끄기</button>
+          <button id="btnMat"  style="padding:5px 8px;font-size:11px;">원본 재질</button>
+        </div>
+        <div id="szDiag" style="font-size:9.5px;color:#d9a441;margin-top:5px;
+             text-align:right;line-height:1.5;"></div>
       </div>
     </div>
   </div>
@@ -688,10 +695,13 @@ function makeSkinnedAvatar(name,slot){
     transparent:false,opacity:1,side:THREE.DoubleSide,depthWrite:true,
     emissive:new THREE.Color(col).multiplyScalar(0.16)});
   model.visible=true;
+  var meshes=[];
   model.traverse(function(o){
     if(o.isMesh||o.isSkinnedMesh){
-      o.material=mat; o.castShadow=true; o.frustumCulled=false; o.visible=true;
-      o.renderOrder=0;
+      if(!o.userData.origMat) o.userData.origMat=o.material;
+      o.material=RAW_MAT?o.userData.origMat:mat;
+      o.castShadow=true; o.frustumCulled=false; o.visible=true; o.renderOrder=0;
+      meshes.push(o);
     }
   });
 
@@ -701,6 +711,12 @@ function makeSkinnedAvatar(name,slot){
          armR:bone("RightArm"),foreR:bone("RightForeArm"),
          legL:bone("LeftUpLeg"),kneeL:bone("LeftLeg"),
          legR:bone("RightUpLeg"),kneeR:bone("RightLeg")};
+
+  // 애니메이션을 껐을 때 되돌릴 기준 자세
+  var rest=[];
+  model.traverse(function(o){
+    if(o.isBone) rest.push({b:o,p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone()});
+  });
 
   var mixer=new THREE.AnimationMixer(model);
   var act={};
@@ -718,7 +734,8 @@ function makeSkinnedAvatar(name,slot){
   ring.rotation.x=-PI/2; ring.position.y=0.04; g.add(ring);
 
   scene.add(g);
-  return {group:g,model:model,mixer:mixer,act:act,B:B,mat:mat,lab:lab,ring:ring,skinned:true,
+  return {group:g,model:model,mixer:mixer,act:act,B:B,mat:mat,lab:lab,ring:ring,
+          rest:rest,meshes:meshes,skinned:true,
           tx:0,tz:0,tr:0,ty:0,blend:0,mode:0,air:0,punch:0,pc:0,emote:0,t:0};
 }
 
@@ -1428,6 +1445,19 @@ $("btnHostNext").onclick=function(){ advance(); };
 $("szDn").onclick=function(){ setCharScale(CHAR.userK*0.85); };
 $("szUp").onclick=function(){ setCharScale(CHAR.userK*1.18); };
 $("szRs").onclick=function(){ setCharScale(1); };
+$("btnAnim").onclick=function(){
+  ANIM_OFF=!ANIM_OFF;
+  this.textContent=ANIM_OFF?"애니 켜기":"애니 끄기";
+  if(ANIM_OFF){
+    if(meMesh) restRestore(meMesh);
+    Object.keys(avatars).forEach(function(k){ restRestore(avatars[k]); });
+  }
+};
+$("btnMat").onclick=function(){
+  RAW_MAT=!RAW_MAT;
+  this.textContent=RAW_MAT?"색 입힌 재질":"원본 재질";
+  applyMatMode();
+};
 
 function advance(){
   if(NET.mode!=="host") return;
@@ -1578,6 +1608,20 @@ function renderHUD(){
     } else if(nearestObj()) act="E — 줍기";
   }
   $("hint").textContent=act||hint||"WASD 이동 · Shift 달리기 · Space 점프 · E 줍기 · 좌클릭 펀치/던지기 · C 앉기 · V 인사 · B 춤";
+  var sd=$("szDiag");
+  if(sd){
+    var a0=meMesh;
+    if(!a0||!a0.model){ sd.textContent="아바타 없음 ("+CHAR.state+")"; }
+    else{
+      var nb=a0.rest?a0.rest.length:0, nm=a0.meshes?a0.meshes.length:0;
+      var bh=0;
+      try{
+        var bb=new THREE.Box3().setFromObject(a0.model);
+        bh=bb.max.y-bb.min.y;
+      }catch(e){}
+      sd.textContent="메시 "+nm+" · 본 "+nb+" · 박스높이 "+bh.toFixed(2)+" · "+CHAR.state;
+    }
+  }
   var sv=$("szVal"), si=$("szInfo");
   if(sv) sv.textContent="배율 "+(CHAR.scale*CHAR.userK).toFixed(3);
   if(si) si.textContent="기본 "+CHAR.scale.toFixed(3)+" × "+CHAR.userK.toFixed(2)+
@@ -2011,8 +2055,29 @@ function syncAvatars(dt){
 function lerpRot(j,axis,target,dt,rate){
   j.rotation[axis]+=(target-j.rotation[axis])*Math.min(1,dt*(rate||12));
 }
+var ANIM_OFF=false, RAW_MAT=false;
+function restRestore(a){
+  if(!a||!a.rest) return;
+  for(var i=0;i<a.rest.length;i++){
+    var r=a.rest[i];
+    r.b.position.copy(r.p); r.b.quaternion.copy(r.q); r.b.scale.copy(r.s);
+  }
+}
+function applyMatModeTo(a){
+  if(!a||!a.meshes) return;
+  a.meshes.forEach(function(o){
+    o.material=RAW_MAT?(o.userData.origMat||a.mat):a.mat;
+    o.material.needsUpdate=true;
+  });
+}
+function applyMatMode(){
+  if(meMesh) applyMatModeTo(meMesh);
+  Object.keys(avatars).forEach(function(k){ applyMatModeTo(avatars[k]); });
+}
+
 function poseSkinned(a,dt){
   a.t=(a.t||0)+dt;
+  if(ANIM_OFF){ restRestore(a); a.group.position.y=a.ty||0; return; }
 
   // 정지 → 걷기 → 달리기 사이를 이어서 섞는다
   var target=a.mode===0?0:(a.mode===1?0.5:1);
