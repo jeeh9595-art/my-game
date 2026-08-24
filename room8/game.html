@@ -138,7 +138,7 @@
       <button id="btnGal">받은 그림</button>
       <button id="btnMic">마이크 끔</button>
       <button id="btnHostNext" class="hidden">다음 단계</button>
-      <div id="sizeBox" style="background:rgba(13,16,21,.82);border:1px solid #2a323b;
+      <div id="sizeBox" class="hidden" style="background:rgba(13,16,21,.82);border:1px solid #2a323b;
            border-radius:8px;padding:7px 9px;text-align:right;">
         <div style="font-size:10.5px;color:#7d8894;letter-spacing:1px;margin-bottom:5px;">캐릭터 크기</div>
         <div style="display:flex;gap:5px;justify-content:flex-end;align-items:center;">
@@ -541,13 +541,14 @@ function limb(parent,len,rad,mat,x,y,z){
 var CHAR={state:"loading",proto:null,clips:{},scale:1,yOff:0,meshK:1,boneH:0,userK:1};
 var CHAR_FILE="char/hc.glb";      // 외형
 var ANIM_FILE="char/Xbot.glb";    // 동작 제공용
-var CHAR_HEIGHT=1.55;             // 이 키에 맞춰 자동으로 크기를 맞춘다
+var CHAR_HEIGHT=1.55;             // 참고용(발 높이 계산에만 쓰인다)
+var CHAR_FIXED_SCALE=1.645;       // 인게임에서 맞춰 확정한 배율
 
 /* 머리끝 뼈와 발 뼈의 실제 월드 높이로 키를 잰다 */
 /* 캐릭터 배율을 직접 조절한다. [ 줄이기 · ] 키우기 · \\ 초기화 */
 function setCharScale(v){
   CHAR.userK=Math.max(0.01,Math.min(6,v));
-  try{ localStorage.setItem("room8_charK2",String(CHAR.userK)); }catch(e){}
+  try{ localStorage.setItem("room8_charK3",String(CHAR.userK)); }catch(e){}
   applyCharScale();
 }
 function applyCharScale(){
@@ -559,7 +560,7 @@ function applyCharScale(){
   });
 }
 (function(){
-  try{ var v=parseFloat(localStorage.getItem("room8_charK2")); if(v>0) CHAR.userK=v; }catch(e){}
+  try{ var v=parseFloat(localStorage.getItem("room8_charK3")); if(v>0) CHAR.userK=v; }catch(e){}
 })();
 
 /* glTF 규격상 스킨 메시 노드의 변환은 무시해야 한다.
@@ -641,8 +642,9 @@ function loadCharacter(){
       });
       CHAR.meshK=meshK;
       CHAR.boneH=m.h;
-      CHAR.scale=m.scale;     // 뼈로 잰 값을 그대로 쓴다
-      CHAR.yOff=m.yOff;
+      // 배율은 확정값을 쓰고, 발 높이만 그 배율에 맞춰 환산한다
+      CHAR.scale=CHAR_FIXED_SCALE;
+      CHAR.yOff=(m.scale>0.0001)?(m.yOff/m.scale*CHAR_FIXED_SCALE):0;
       var hcHip=hipsY(CHAR.proto);
 
       L.load(ANIM_FILE,function(g2){
@@ -816,6 +818,7 @@ window.addEventListener("keydown",function(e){
   var k=e.key.toLowerCase();
   if(document.activeElement&&/input|select|textarea/i.test(document.activeElement.tagName)) return;
   if(k==="e"&&!keys.e) doInteract();
+  if(k==="f2"){ var sb=$("sizeBox"); if(sb) sb.classList.toggle("hidden"); e.preventDefault(); }
   if(k==="["){ setCharScale(CHAR.userK*0.85); e.preventDefault(); }
   if(k==="]"){ setCharScale(CHAR.userK*1.18); e.preventDefault(); }
   if(k==="\\"){ setCharScale(1); e.preventDefault(); }
