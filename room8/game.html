@@ -186,7 +186,9 @@
   </div>
 </div>
 
-<script src="three.min.js"></script>
+<script src="lib/three147.min.js"></script>
+<script src="lib/GLTFLoader.js"></script>
+<script src="lib/SkeletonUtils.js"></script>
 <script src="peerjs.min.js"></script>
 <script src="rules.js"></script>
 <script>
@@ -509,7 +511,88 @@ function limb(parent,len,rad,mat,x,y,z){
   return joint;
 }
 
+/* ================= 캐릭터 모델 =================
+   Mixamo 규격 스킨 모델을 불러와 쓴다.
+   못 불러오면 아래 도형 캐릭터로 자동 대체된다. */
+var CHAR={state:"loading",proto:null,clips:{}};
+var CHAR_FILE="char/Xbot.glb";
+
+function loadCharacter(){
+  if(!THREE.GLTFLoader){ CHAR.state="failed"; return; }
+  try{
+    new THREE.GLTFLoader().load(CHAR_FILE,function(gltf){
+      CHAR.proto=gltf.scene;
+      (gltf.animations||[]).forEach(function(c){ CHAR.clips[c.name]=c; });
+      CHAR.state="ready";
+      if($("btnEnter")) $("btnEnter").textContent="공간으로 들어가기";
+    },undefined,function(){ CHAR.state="failed"; });
+  }catch(e){ CHAR.state="failed"; }
+}
+
+/* 월드 기준 축으로 뼈를 돌린다 (본의 로컬 축 방향을 몰라도 된다) */
+var _qP=new THREE.Quaternion(), _qA=new THREE.Quaternion(), _qD=new THREE.Quaternion();
+function worldSpin(b,axis,ang){
+  if(!b||!b.parent||!ang) return;
+  b.parent.getWorldQuaternion(_qP);
+  _qA.setFromAxisAngle(axis,ang);
+  _qD.copy(_qP).invert().multiply(_qA).multiply(_qP);
+  b.quaternion.premultiply(_qD);
+}
+/* 부호가 반대로 보이면 여기 숫자만 뒤집으면 된다 */
+var SGN={arm:-1, leg:1, knee:-1, twist:1};
+
+var _axR=new THREE.Vector3(), _axU=new THREE.Vector3(0,1,0);
+function rightAxis(a){
+  var ry=a.group.rotation.y;
+  _axR.set(-Math.cos(ry),0,Math.sin(ry));
+  return _axR;
+}
+
+function makeSkinnedAvatar(name,slot){
+  var col=ROOM_COLORS[slot%8];
+  var g=new THREE.Group();
+  var model=THREE.SkeletonUtils.clone(CHAR.proto);
+  var mat=new THREE.MeshStandardMaterial({color:col,roughness:0.72,metalness:0.0});
+  model.traverse(function(o){
+    if(o.isMesh||o.isSkinnedMesh){
+      o.material=mat; o.castShadow=true; o.frustumCulled=false;
+    }
+  });
+  g.add(model);
+
+  var mixer=new THREE.AnimationMixer(model);
+  var act={};
+  ["idle","walk","run"].forEach(function(n){
+    if(!CHAR.clips[n]) return;
+    var a=mixer.clipAction(CHAR.clips[n]);
+    a.play(); a.setEffectiveWeight(n==="idle"?1:0);
+    act[n]=a;
+  });
+
+  function bone(n){ return model.getObjectByName("mixamorig:"+n); }
+  var B={hips:bone("Hips"),spine:bone("Spine1"),
+         armL:bone("LeftArm"),foreL:bone("LeftForeArm"),
+         armR:bone("RightArm"),foreR:bone("RightForeArm"),
+         legL:bone("LeftUpLeg"),kneeL:bone("LeftLeg"),
+         legR:bone("RightUpLeg"),kneeR:bone("RightLeg")};
+
+  var lab=makeLabel(name,"#ffffff",44);
+  lab.position.y=1.98; lab.scale.set(2.0,1.0,1); g.add(lab);
+  var ring=new THREE.Mesh(new THREE.RingGeometry(0.40,0.48,26),
+    new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.45,side:THREE.DoubleSide}));
+  ring.rotation.x=-PI/2; ring.position.y=0.04; g.add(ring);
+
+  scene.add(g);
+  return {group:g,model:model,mixer:mixer,act:act,B:B,mat:mat,lab:lab,ring:ring,skinned:true,
+          tx:0,tz:0,tr:0,ty:0,blend:0,mode:0,air:0,punch:0,pc:0,emote:0,t:0};
+}
+
 function makeAvatar(name,slot){
+  if(CHAR.state==="ready"&&CHAR.proto) return makeSkinnedAvatar(name,slot);
+  return makePrimAvatar(name,slot);
+}
+
+function makePrimAvatar(name,slot){
   var col=ROOM_COLORS[slot%8];
   var g=new THREE.Group();
   var mat=new THREE.MeshStandardMaterial({color:col,roughness:0.72,metalness:0.0});
@@ -1186,6 +1269,11 @@ $("btnCopy").onclick=function(){
   setTimeout(function(){ $("copied").textContent=""; },1600);
 };
 $("btnEnter").onclick=function(){
+  if(CHAR.state==="loading"){
+    $("btnEnter").textContent="캐릭터 불러오는 중…";
+    setTimeout(function(){ $("btnEnter").click(); },400);
+    return;
+  }
   $("cover").classList.add("hidden");
   $("hud").classList.remove("hidden");
   $("btnHostNext").classList.toggle("hidden",NET.mode!=="host");
@@ -1761,7 +1849,7 @@ function syncAvatars(dt){
     var npc=w[6]||0;
     if(npc!==a.pc){ a.pc=npc; a.punch=1; }
     a.group.visible=p.online!==false;
-    a.mat.opacity=p.dead?0.3:1; a.mat.transparent=!!p.dead;
+    if(a.mat){ a.mat.opacity=p.dead?0.3:1; a.mat.transparent=!!p.dead; }
   });
   Object.keys(avatars).forEach(function(k){
     if(!seen[k]){ scene.remove(avatars[k].group); delete avatars[k]; return; }
@@ -1778,7 +1866,62 @@ function syncAvatars(dt){
 function lerpRot(j,axis,target,dt,rate){
   j.rotation[axis]+=(target-j.rotation[axis])*Math.min(1,dt*(rate||12));
 }
+function poseSkinned(a,dt){
+  a.t=(a.t||0)+dt;
+
+  // 정지 → 걷기 → 달리기 사이를 이어서 섞는다
+  var target=a.mode===0?0:(a.mode===1?0.5:1);
+  a.blend+=(target-a.blend)*Math.min(1,dt*6);
+  var b=a.blend;
+  var wIdle=b<0.5?(1-b*2):0;
+  var wWalk=b<0.5?(b*2):(2-b*2);
+  var wRun =b<0.5?0:(b*2-1);
+  if(a.act.idle) a.act.idle.setEffectiveWeight(wIdle);
+  if(a.act.walk){ a.act.walk.setEffectiveWeight(wWalk); a.act.walk.setEffectiveTimeScale(1.0); }
+  if(a.act.run){ a.act.run.setEffectiveWeight(wRun); a.act.run.setEffectiveTimeScale(1.0); }
+
+  a.mixer.update(dt);
+
+  var B=a.B, ax=rightAxis(a);
+
+  // 공중
+  if(a.air>0){
+    worldSpin(B.legL,ax,SGN.leg*0.7);  worldSpin(B.legR,ax,SGN.leg*0.3);
+    worldSpin(B.kneeL,ax,SGN.knee*1.1); worldSpin(B.kneeR,ax,SGN.knee*0.5);
+    worldSpin(B.armL,ax,SGN.arm*1.9);  worldSpin(B.armR,ax,SGN.arm*1.9);
+  }
+
+  // 감정표현
+  if(a.emote===1){                       // 앉기
+    worldSpin(B.legL,ax,SGN.leg*1.5); worldSpin(B.legR,ax,SGN.leg*1.5);
+    worldSpin(B.kneeL,ax,SGN.knee*1.5); worldSpin(B.kneeR,ax,SGN.knee*1.5);
+    a.group.position.y=(a.ty||0)-0.34;
+  } else if(a.emote===2){                // 손 흔들기
+    worldSpin(B.armR,ax,SGN.arm*2.4);
+    worldSpin(B.foreR,_axU,Math.sin(a.t*11)*0.6);
+    a.group.position.y=a.ty||0;
+  } else if(a.emote===3){                // 춤
+    var d1=a.t*7;
+    worldSpin(B.hips,_axU,Math.sin(d1)*0.5);
+    worldSpin(B.armL,ax,SGN.arm*(1.7+Math.sin(d1)*0.6));
+    worldSpin(B.armR,ax,SGN.arm*(1.7-Math.sin(d1)*0.6));
+    a.group.position.y=(a.ty||0)+Math.abs(Math.sin(d1*2))*0.12;
+  } else {
+    a.group.position.y=a.ty||0;
+  }
+
+  // 펀치
+  if(a.punch>0){
+    a.punch=Math.max(0,a.punch-dt/0.32);
+    var k=1-a.punch, ext=Math.sin(Math.min(1,k*1.8)*PI);
+    worldSpin(B.armR,ax,SGN.arm*1.6*ext);
+    worldSpin(B.foreR,ax,SGN.arm*0.5*ext);
+    worldSpin(B.hips,_axU,SGN.twist*-0.35*ext);
+  }
+}
+
 function poseAvatar(a,dt){
+  if(a.skinned) return poseSkinned(a,dt);
   var moving=a.mode>0, run=a.mode===2;
   a.phase=(a.phase||0)+(moving?dt*(run?15:9.5):0);
   a.t=(a.t||0)+dt;
@@ -1868,6 +2011,7 @@ function poseAvatar(a,dt){
 function hudNet(s){ $("sub").textContent=s; }
 
 initScene();
+loadCharacter();
 tick();
 </script>
 </body>
