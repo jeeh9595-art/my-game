@@ -479,7 +479,7 @@ function stepMe(dt){
   var len=Math.hypot(mx,mz);
   if(len<0.05) return false;
   mx/=len; mz/=len;
-  var fx=Math.sin(camYaw),fz=Math.cos(camYaw),rx=Math.cos(camYaw),rz=-Math.sin(camYaw);
+  var fx=Math.sin(camYaw),fz=Math.cos(camYaw),rx=-Math.cos(camYaw),rz=Math.sin(camYaw);
   var dx=fx*mz+rx*mx, dz=fz*mz+rz*mx, sp=me.speed*dt;
   var nx=me.x+dx*sp, nz=me.z+dz*sp;
   if(!collide(nx,me.z)) me.x=nx;
