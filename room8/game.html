@@ -379,30 +379,71 @@ function makeLabel(text,color,size){
 }
 
 /* ============ 아바타 ============ */
+/* 관절 인형: 골반 기준으로 몸통, 머리, 양팔(어깨/팔꿈치), 양다리(엉덩이/무릎) */
+var HIP_Y=0.92;
+function limb(parent,len,rad,mat,x,y,z){
+  var joint=new THREE.Group();
+  joint.position.set(x||0,y||0,z||0);
+  var m=new THREE.Mesh(new THREE.CapsuleGeometry(rad,Math.max(0.01,len-rad*2),3,10),mat);
+  m.position.y=-len/2; m.castShadow=true;
+  joint.add(m);
+  parent.add(joint);
+  return joint;
+}
+
 function makeAvatar(name,slot){
   var col=ROOM_COLORS[slot%8];
   var g=new THREE.Group();
   var mat=new THREE.MeshStandardMaterial({color:col,roughness:0.55});
-  var body=new THREE.Mesh(new THREE.CapsuleGeometry(0.33,0.86,4,14),mat);
-  body.position.y=0.94; body.castShadow=true; g.add(body);
-  var head=new THREE.Mesh(new THREE.SphereGeometry(0.27,20,14),mat);
-  head.position.y=1.72; head.castShadow=true; g.add(head);
-  var nose=new THREE.Mesh(new THREE.SphereGeometry(0.075,10,8),
-    new THREE.MeshStandardMaterial({color:0xf2f4f7}));
-  nose.position.set(0,1.72,0.25); g.add(nose);
-  var legs=new THREE.Mesh(new THREE.CapsuleGeometry(0.13,0.42,3,10),mat);
-  legs.position.y=0.3; legs.castShadow=true; g.add(legs);
+  var skin=new THREE.MeshStandardMaterial({color:0xf2f4f7,roughness:0.6});
+
+  var hip=new THREE.Group(); hip.position.y=HIP_Y; g.add(hip);
+
+  var torso=new THREE.Mesh(new THREE.CapsuleGeometry(0.26,0.34,4,14),mat);
+  torso.position.y=0.30; torso.castShadow=true; hip.add(torso);
+
+  var neck=new THREE.Group(); neck.position.y=0.60; hip.add(neck);
+  var head=new THREE.Mesh(new THREE.SphereGeometry(0.235,20,14),mat);
+  head.position.y=0.13; head.castShadow=true; neck.add(head);
+  var nose=new THREE.Mesh(new THREE.SphereGeometry(0.07,10,8),skin);
+  nose.position.set(0,0.13,0.22); neck.add(nose);
+
+  var armL=limb(hip,0.32,0.085,mat, 0.31,0.50,0);
+  var elbL=limb(armL,0.30,0.075,mat, 0,-0.32,0);
+  var handL=new THREE.Mesh(new THREE.SphereGeometry(0.095,10,8),skin);
+  handL.position.y=-0.30; handL.castShadow=true; elbL.add(handL);
+
+  var armR=limb(hip,0.32,0.085,mat,-0.31,0.50,0);
+  var elbR=limb(armR,0.30,0.075,mat, 0,-0.32,0);
+  var handR=new THREE.Mesh(new THREE.SphereGeometry(0.095,10,8),skin);
+  handR.position.y=-0.30; handR.castShadow=true; elbR.add(handR);
+
+  var legL=limb(hip,0.44,0.115,mat, 0.145,0,0);
+  var kneL=limb(legL,0.42,0.095,mat, 0,-0.44,0);
+  var footL=new THREE.Mesh(new THREE.BoxGeometry(0.19,0.1,0.3),skin);
+  footL.position.set(0,-0.44,0.06); footL.castShadow=true; kneL.add(footL);
+
+  var legR=limb(hip,0.44,0.115,mat,-0.145,0,0);
+  var kneR=limb(legR,0.42,0.095,mat, 0,-0.44,0);
+  var footR=new THREE.Mesh(new THREE.BoxGeometry(0.19,0.1,0.3),skin);
+  footR.position.set(0,-0.44,0.06); footR.castShadow=true; kneR.add(footR);
+
   var lab=makeLabel(name,"#ffffff",44);
-  lab.position.y=2.35; lab.scale.set(2.2,1.1,1); g.add(lab);
+  lab.position.y=2.30; lab.scale.set(2.2,1.1,1); g.add(lab);
   var ring=new THREE.Mesh(new THREE.RingGeometry(0.42,0.52,24),
     new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.7,side:THREE.DoubleSide}));
   ring.rotation.x=-PI/2; ring.position.y=0.05; g.add(ring);
+
   scene.add(g);
-  return {group:g,tx:0,tz:0,tr:0,body:body,legs:legs,mat:mat,phase:0,lab:lab};
+  return {group:g,hip:hip,torso:torso,neck:neck,mat:mat,lab:lab,ring:ring,
+          armL:armL,armR:armR,elbL:elbL,elbR:elbR,
+          legL:legL,legR:legR,kneL:kneL,kneR:kneR,
+          tx:0,tz:0,tr:0,ty:0,phase:0,mode:0,air:0,punch:0,pc:0};
 }
 
 /* ============ 이동 ============ */
-var me={x:0,z:HALL_R*0.5,ry:0,speed:4.6};
+var me={x:0,z:HALL_R*0.5,ry:0,y:0,vy:0,ground:true,mode:0,punch:0,pc:0,kx:0,kz:0,
+        walk:4.2,run:7.4,jumpV:5.6,grav:15.5};
 var camYaw=0,camPitch=0.42,camDist=7.2;
 var keys={},started=false;
 
@@ -418,9 +459,12 @@ window.addEventListener("blur",function(){ keys={}; });
 var dragging=false,lastX=0,lastY=0,dragId=-1;
 (function(){
   var cv=$("view");
+  var downT=0,downX=0,downY=0;
   cv.addEventListener("pointerdown",function(e){
     dragging=true; dragId=e.pointerId; lastX=e.clientX; lastY=e.clientY;
+    downT=Date.now(); downX=e.clientX; downY=e.clientY;
     cv.setPointerCapture(e.pointerId);
+    if(e.pointerType==="mouse"&&e.button===0) doPunch();
   });
   cv.addEventListener("pointermove",function(e){
     if(!dragging||e.pointerId!==dragId) return;
@@ -428,7 +472,14 @@ var dragging=false,lastX=0,lastY=0,dragId=-1;
     camPitch=Math.max(0.08,Math.min(1.05,camPitch+(e.clientY-lastY)*0.004));
     lastX=e.clientX; lastY=e.clientY;
   });
-  function up(e){ if(e&&e.pointerId!==dragId) return; dragging=false; dragId=-1; }
+  function up(e){
+    if(e&&e.pointerId!==dragId) return;
+    if(e&&e.pointerType&&e.pointerType!=="mouse"){
+      var moved=Math.hypot(e.clientX-downX,e.clientY-downY);
+      if(moved<12&&Date.now()-downT<260) doPunch();
+    }
+    dragging=false; dragId=-1;
+  }
   cv.addEventListener("pointerup",up); cv.addEventListener("pointercancel",up);
   cv.addEventListener("wheel",function(e){
     e.preventDefault();
@@ -477,10 +528,29 @@ function stepMe(dt){
   if(keys.d||keys.arrowright) mx+=1;
   if(stick.active){ mx+=stick.dx; mz-=stick.dy; }
   var len=Math.hypot(mx,mz);
-  if(len<0.05) return false;
+  var running=!!keys.shift;
+
+  if(keys[" "]&&me.ground){ me.vy=me.jumpV; me.ground=false; }
+  if(!me.ground||me.y>0){
+    me.vy-=me.grav*dt;
+    me.y+=me.vy*dt;
+    if(me.y<=0){ me.y=0; me.vy=0; me.ground=true; }
+  }
+
+  if(me.punch>0) me.punch=Math.max(0,me.punch-dt/0.32);
+
+  if(Math.abs(me.kx)>0.01||Math.abs(me.kz)>0.01){
+    var knx=me.x+me.kx*dt, knz=me.z+me.kz*dt;
+    if(!collide(knx,me.z)) me.x=knx;
+    if(!collide(me.x,knz)) me.z=knz;
+    me.kx*=0.86; me.kz*=0.86;
+  }
+
+  if(len<0.05){ me.mode=0; return false; }
   mx/=len; mz/=len;
   var fx=Math.sin(camYaw),fz=Math.cos(camYaw),rx=-Math.cos(camYaw),rz=Math.sin(camYaw);
-  var dx=fx*mz+rx*mx, dz=fz*mz+rz*mx, sp=me.speed*dt;
+  var dx=fx*mz+rx*mx, dz=fz*mz+rz*mx;
+  var sp=(running?me.run:me.walk)*dt*(me.ground?1:0.85);
   var nx=me.x+dx*sp, nz=me.z+dz*sp;
   if(!collide(nx,me.z)) me.x=nx;
   if(!collide(me.x,nz)) me.z=nz;
@@ -489,7 +559,31 @@ function stepMe(dt){
   var want=Math.atan2(dx,dz), diff=want-me.ry;
   while(diff>PI) diff-=PI*2; while(diff<-PI) diff+=PI*2;
   me.ry+=diff*Math.min(1,dt*12);
+  me.mode=running?2:1;
   return true;
+}
+
+function doPunch(){
+  if(!started||me.punch>0) return;
+  me.punch=1; me.pc=(me.pc+1)%1000;
+  var fx=Math.sin(me.ry),fz=Math.cos(me.ry),best=-1,bd=1.9;
+  Object.keys(avatars).forEach(function(k){
+    var g=avatars[k].group;
+    var dx=g.position.x-me.x, dz=g.position.z-me.z;
+    var d=Math.hypot(dx,dz);
+    if(d>bd||d<0.01) return;
+    if((dx/d)*fx+(dz/d)*fz<0.45) return;
+    bd=d; best=+k;
+  });
+  if(best>=0) toHost({t:"hit",target:best});
+}
+function takeHit(fromSlot){
+  var a=avatars[fromSlot];
+  var sx=1,sz=0;
+  if(a){ sx=me.x-a.group.position.x; sz=me.z-a.group.position.z; }
+  var d=Math.hypot(sx,sz)||1;
+  me.kx=(sx/d)*7.5; me.kz=(sz/d)*7.5;
+  if(me.ground){ me.vy=2.6; me.ground=false; }
 }
 function updateCamera(){
   var cy=Math.cos(camPitch),sy=Math.sin(camPitch);
@@ -579,7 +673,13 @@ function hostMsg(c,m){
   }
   var pl=null; G.players.forEach(function(p){ if(p.cid===c.peer) pl=p; });
   if(!pl) return;
-  if(m.t==="pos"){ pl.x=m.x; pl.z=m.z; pl.ry=m.ry; return; }
+  if(m.t==="pos"){ pl.x=m.x; pl.z=m.z; pl.ry=m.ry; pl.y=m.y||0; pl.mode=m.m||0; pl.pc=m.pc||0; return; }
+  if(m.t==="hit"){
+    var tp=G.players[m.target];
+    if(tp&&tp.slot===0) takeHit(pl.slot);
+    else if(tp) send(tp,{t:"hit",from:pl.slot});
+    return;
+  }
   if(m.t==="tvote"){ G.themeVotes[pl.slot]=m.i; pushAll(); return; }
   if(m.t==="words"){ pl.wa=String(m.a||"").trim(); pl.wb=String(m.b||"").trim(); pushAll(); return; }
   if(m.t==="draw"){ (G.draws[G.round]=G.draws[G.round]||{})[pl.slot]=m.strokes||[]; pushAll(); return; }
@@ -628,7 +728,8 @@ function pushAll(){
 }
 function pushWorld(){
   var w={t:"w",p:G.players.map(function(p){
-    return [p.slot,+p.x.toFixed(2),+p.z.toFixed(2),+p.ry.toFixed(2)];
+    return [p.slot,+p.x.toFixed(2),+p.z.toFixed(2),+p.ry.toFixed(2),
+            +(p.y||0).toFixed(2),p.mode||0,p.pc||0];
   })};
   Object.keys(NET.conns).forEach(function(k){
     var c=NET.conns[k]; if(c&&c.open){ try{c.send(w);}catch(e){} }
@@ -661,6 +762,7 @@ function clientMsg(m){
   if(m.t==="hello"){ NET.slot=m.slot; NET.code=m.code; showLobby(); return; }
   if(m.t==="sync"){ PUB=m.pub; PRIV=m.priv; onState(); return; }
   if(m.t==="w"){ WORLD=m.p; return; }
+  if(m.t==="hit"){ takeHit(m.from); return; }
 }
 function toHost(msg){
   if(NET.mode==="host"){ hostSelf(msg); return; }
@@ -668,6 +770,11 @@ function toHost(msg){
 }
 function hostSelf(m){
   var p=G.players[0];
+  if(m.t==="hit"){
+    var tp=G.players[m.target];
+    if(tp&&tp.slot!==0) send(tp,{t:"hit",from:0});
+    return;
+  }
   if(m.t==="tvote"){ G.themeVotes[0]=m.i; pushAll(); }
   else if(m.t==="words"){ p.wa=m.a; p.wb=m.b; pushAll(); }
   else if(m.t==="draw"){ (G.draws[G.round]=G.draws[G.round]||{})[0]=m.strokes||[]; pushAll(); }
@@ -854,7 +961,7 @@ function renderHUD(){
   } else if(PUB.phase==="day") hint="중앙 홀에 모여서 이야기하세요";
   else if(PUB.phase==="vote") hint="투표 패널에서 한 명을 고르세요";
   else if(PUB.phase==="final") hint=inRoom(mySlot())?"자물쇠를 맞춰 보세요":"내 방으로 돌아가세요";
-  $("hint").textContent=hint;
+  $("hint").textContent=hint||"WASD 이동 · Shift 달리기 · Space 점프 · 좌클릭 펀치";
 
   $("btnBoard").classList.toggle("hidden",!(PUB.board&&PUB.board.length));
   $("btnGal").classList.toggle("hidden",!(PRIV&&PRIV.recv&&PRIV.recv.length));
@@ -1189,18 +1296,27 @@ function tick(){
   requestAnimationFrame(tick);
   var dt=Math.min(0.05,clock.getDelta());
   if(started){
-    var moving=stepMe(dt);
+    stepMe(dt);
     if(meMesh){
-      meMesh.group.position.set(me.x,0,me.z);
+      meMesh.group.position.set(me.x,me.y,me.z);
       meMesh.group.rotation.y=me.ry;
-      bob(meMesh,moving,dt);
+      meMesh.mode=me.mode; meMesh.air=me.ground?0:1;
+      meMesh.punch=me.punch; meMesh.ty=me.y;
+      poseAvatar(meMesh,dt);
     }
     updateCamera();
     lastSend+=dt;
     if(lastSend>0.08){
       lastSend=0;
-      if(NET.mode==="client"){ if(NET.conn&&NET.conn.open){ try{NET.conn.send({t:"pos",x:+me.x.toFixed(2),z:+me.z.toFixed(2),ry:+me.ry.toFixed(2)});}catch(e){} } }
-      else if(G){ G.players[0].x=me.x; G.players[0].z=me.z; G.players[0].ry=me.ry; pushWorld(); }
+      if(NET.mode==="client"){
+        if(NET.conn&&NET.conn.open){ try{NET.conn.send({t:"pos",
+          x:+me.x.toFixed(2),z:+me.z.toFixed(2),ry:+me.ry.toFixed(2),
+          y:+me.y.toFixed(2),m:me.mode,pc:me.pc});}catch(e){} }
+      } else if(G){
+        var h0=G.players[0];
+        h0.x=me.x; h0.z=me.z; h0.ry=me.ry; h0.y=me.y; h0.mode=me.mode; h0.pc=me.pc;
+        pushWorld();
+      }
     }
     syncAvatars(dt);
     if(PUB) renderHUD();
@@ -1217,26 +1333,61 @@ function syncAvatars(dt){
     var a=avatars[slot];
     if(!a){ a=avatars[slot]=makeAvatar(p.name,slot); a.group.position.set(w[1],0,w[2]); }
     a.tx=w[1]; a.tz=w[2]; a.tr=w[3];
+    a.ty=w[4]||0; a.mode=w[5]||0; a.air=((w[4]||0)>0.05)?1:0;
+    var npc=w[6]||0;
+    if(npc!==a.pc){ a.pc=npc; a.punch=1; }
     a.group.visible=p.online!==false;
     a.mat.opacity=p.dead?0.3:1; a.mat.transparent=!!p.dead;
   });
   Object.keys(avatars).forEach(function(k){
     if(!seen[k]){ scene.remove(avatars[k].group); delete avatars[k]; return; }
     var a=avatars[k],g=a.group;
-    var mv=Math.hypot(a.tx-g.position.x,a.tz-g.position.z)>0.02;
     g.position.x+=(a.tx-g.position.x)*Math.min(1,dt*12);
     g.position.z+=(a.tz-g.position.z)*Math.min(1,dt*12);
     var d=a.tr-g.rotation.y;
     while(d>PI) d-=PI*2; while(d<-PI) d+=PI*2;
     g.rotation.y+=d*Math.min(1,dt*12);
-    bob(a,mv,dt);
+    poseAvatar(a,dt);
   });
 }
-function bob(a,moving,dt){
-  a.phase=(a.phase||0)+(moving?dt*9:0);
-  var s=moving?Math.abs(Math.sin(a.phase))*0.06:0;
-  if(a.body) a.body.position.y=0.94+s;
-  if(a.legs) a.legs.rotation.x=moving?Math.sin(a.phase*2)*0.5:0;
+/* mode: 0 정지 1 걷기 2 달리기 / air: 공중 / punch: 1 에서 0 으로 */
+function poseAvatar(a,dt){
+  var moving=a.mode>0, run=a.mode===2;
+  a.phase=(a.phase||0)+(moving?dt*(run?15:9.5):0);
+  var p=a.phase, amp=run?0.95:0.55, arm=run?0.85:0.42;
+
+  if(a.air>0){
+    a.legL.rotation.x=-0.55; a.legR.rotation.x=0.25;
+    a.kneL.rotation.x=1.0;   a.kneR.rotation.x=0.35;
+    a.armL.rotation.x=-2.2;  a.armR.rotation.x=-2.2;
+    a.elbL.rotation.x=0.5;   a.elbR.rotation.x=0.5;
+    a.hip.position.y=HIP_Y;
+    a.torso.rotation.x=-0.12;
+  } else {
+    a.legL.rotation.x=Math.sin(p)*amp;
+    a.legR.rotation.x=-Math.sin(p)*amp;
+    a.kneL.rotation.x=Math.max(0,-Math.sin(p+0.7))*(run?1.25:0.85);
+    a.kneR.rotation.x=Math.max(0, Math.sin(p+0.7))*(run?1.25:0.85);
+    a.armL.rotation.x=-Math.sin(p)*arm;
+    a.armR.rotation.x= Math.sin(p)*arm;
+    a.elbL.rotation.x=moving?0.35+Math.max(0,Math.sin(p))*0.35:0.18;
+    a.elbR.rotation.x=moving?0.35+Math.max(0,-Math.sin(p))*0.35:0.18;
+    a.hip.position.y=HIP_Y+(moving?Math.abs(Math.sin(p))*(run?0.075:0.045):0);
+    a.torso.rotation.x=run?-0.22:(moving?-0.06:0);
+  }
+
+  if(a.punch>0){
+    a.punch=Math.max(0,a.punch-dt/0.32);
+    var k=1-a.punch;
+    var ext=Math.sin(Math.min(1,k*1.8)*PI);
+    a.armR.rotation.x=-1.55*ext-0.15;
+    a.elbR.rotation.x=(1-ext)*1.5;
+    a.hip.rotation.y=-0.35*ext;
+    a.armL.rotation.x=0.5*ext;
+  } else {
+    a.hip.rotation.y+=(0-a.hip.rotation.y)*Math.min(1,dt*10);
+  }
+  a.group.position.y=a.ty||0;
 }
 function hudNet(s){ $("sub").textContent=s; }
 
