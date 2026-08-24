@@ -153,6 +153,7 @@
              display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap;">
           <button id="btnAnim" style="padding:5px 8px;font-size:11px;">애니 끄기</button>
           <button id="btnMat"  style="padding:5px 8px;font-size:11px;">원본 재질</button>
+          <button id="btnClip" style="padding:5px 8px;font-size:11px;">빌린 애니 켜기</button>
         </div>
         <div id="szDiag" style="font-size:9.5px;color:#d9a441;margin-top:5px;
              text-align:right;line-height:1.5;"></div>
@@ -722,12 +723,14 @@ function makeSkinnedAvatar(name,slot){
 
   var mixer=new THREE.AnimationMixer(model);
   var act={};
-  ["idle","walk","run"].forEach(function(n){
-    if(!CHAR.clips[n]) return;
-    var a=mixer.clipAction(CHAR.clips[n]);
-    a.play(); a.setEffectiveWeight(n==="idle"?1:0);
-    act[n]=a;
-  });
+  if(USE_CLIPS){
+    ["idle","walk","run"].forEach(function(n){
+      if(!CHAR.clips[n]) return;
+      var a=mixer.clipAction(CHAR.clips[n]);
+      a.play(); a.setEffectiveWeight(n==="idle"?1:0);
+      act[n]=a;
+    });
+  }
 
   var lab=makeLabel(name,"#ffffff",44);
   lab.position.y=CHAR_HEIGHT+0.28; lab.scale.set(2.0,1.0,1); g.add(lab);
@@ -1456,6 +1459,11 @@ $("btnAnim").onclick=function(){
     Object.keys(avatars).forEach(function(k){ restRestore(avatars[k]); });
   }
 };
+$("btnClip").onclick=function(){
+  USE_CLIPS=!USE_CLIPS;
+  this.textContent=USE_CLIPS?"빌린 애니 끄기":"빌린 애니 켜기";
+  alert("바뀐 설정은 새로고침 후 적용됩니다.");
+};
 $("btnMat").onclick=function(){
   RAW_MAT=!RAW_MAT;
   this.textContent=RAW_MAT?"색 입힌 재질":"원본 재질";
@@ -2059,6 +2067,29 @@ function lerpRot(j,axis,target,dt,rate){
   j.rotation[axis]+=(target-j.rotation[axis])*Math.min(1,dt*(rate||12));
 }
 var ANIM_OFF=false, RAW_MAT=false;
+/* 빌려온 클립은 기본으로 쓰지 않는다.
+   다른 모델의 기본 자세(뼈 방향)가 달라서 회전값을 그대로 넣으면 몸이 접힌다.
+   대신 월드 축 기준으로 뼈를 돌려 걷기/달리기를 만든다 — 뼈 방향을 몰라도 안전하다. */
+var USE_CLIPS=false;
+/* 기본 자세에서 시작해 월드 축으로 팔다리를 흔든다 */
+function walkPose(a,dt){
+  var run=a.mode===2, bl=a.blend, B=a.B;
+  if(a.air>0||a.emote) return;
+  a.phase=(a.phase||0)+(a.mode>0?dt*(run?14:9):0);
+  if(bl<0.02) return;
+  var ax=rightAxis(a);
+  var p=a.phase, sw=Math.sin(p), sw2=Math.sin(p+0.7);
+  var legA=(run?0.85:0.52)*bl, armA=(run?0.75:0.40)*bl, kneeA=(run?1.15:0.80)*bl;
+
+  worldSpin(B.legL,ax, SGN.leg*sw*legA);
+  worldSpin(B.legR,ax,-SGN.leg*sw*legA);
+  worldSpin(B.kneeL,ax,SGN.knee*Math.max(0,-sw2)*kneeA);
+  worldSpin(B.kneeR,ax,SGN.knee*Math.max(0, sw2)*kneeA);
+  worldSpin(B.armL,ax,-SGN.arm*sw*armA);
+  worldSpin(B.armR,ax, SGN.arm*sw*armA);
+  a.group.position.y=(a.ty||0)+Math.abs(sw)*(run?0.07:0.04)*bl;
+}
+
 function restRestore(a){
   if(!a||!a.rest) return;
   for(var i=0;i<a.rest.length;i++){
@@ -2082,18 +2113,22 @@ function poseSkinned(a,dt){
   a.t=(a.t||0)+dt;
   if(ANIM_OFF){ restRestore(a); a.group.position.y=a.ty||0; return; }
 
-  // 정지 → 걷기 → 달리기 사이를 이어서 섞는다
   var target=a.mode===0?0:(a.mode===1?0.5:1);
   a.blend+=(target-a.blend)*Math.min(1,dt*6);
-  var b=a.blend;
-  var wIdle=b<0.5?(1-b*2):0;
-  var wWalk=b<0.5?(b*2):(2-b*2);
-  var wRun =b<0.5?0:(b*2-1);
-  if(a.act.idle) a.act.idle.setEffectiveWeight(wIdle);
-  if(a.act.walk){ a.act.walk.setEffectiveWeight(wWalk); a.act.walk.setEffectiveTimeScale(1.0); }
-  if(a.act.run){ a.act.run.setEffectiveWeight(wRun); a.act.run.setEffectiveTimeScale(1.0); }
 
-  a.mixer.update(dt);
+  if(USE_CLIPS&&a.act.idle){
+    var b=a.blend;
+    var wIdle=b<0.5?(1-b*2):0;
+    var wWalk=b<0.5?(b*2):(2-b*2);
+    var wRun =b<0.5?0:(b*2-1);
+    a.act.idle.setEffectiveWeight(wIdle);
+    if(a.act.walk) a.act.walk.setEffectiveWeight(wWalk);
+    if(a.act.run) a.act.run.setEffectiveWeight(wRun);
+    a.mixer.update(dt);
+  } else {
+    restRestore(a);
+    walkPose(a,dt);
+  }
 
   var B=a.B, ax=rightAxis(a);
 
