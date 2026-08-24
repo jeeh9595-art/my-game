@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>8호실 프로토타입</title>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:#0f1216;color:#e3e9ed;
+       font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;font-size:14px;line-height:1.7;}
+  .wrap{max-width:1240px;margin:0 auto;padding:16px 18px 70px;}
+  .bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+       background:#161b21;border:1px solid #232b33;border-radius:10px;padding:12px 18px;margin-bottom:14px;}
+  .bar .rd{font-size:19px;font-weight:700;letter-spacing:2px;}
+  .ph{font-size:11.5px;letter-spacing:2px;padding:4px 12px;border-radius:20px;text-transform:uppercase;}
+  .ph.night{background:#12302e;color:#45c2b7;}
+  .ph.day{background:#2e2617;color:#d9a441;}
+  .ph.fin{background:#35201e;color:#e8695e;}
+  .me{margin-left:auto;font-size:12.5px;color:#8b95a0;}
+  .me b{color:#e3e9ed;}
+
+  .cols{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px;}
+  @media(max-width:900px){.cols{grid-template-columns:1fr;}}
+  .box{background:#161b21;border:1px solid #232b33;border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+  .box h3{margin:0 0 10px;font-size:12px;letter-spacing:2px;color:#7d8894;text-transform:uppercase;font-weight:500;}
+
+  .plist{display:flex;flex-direction:column;gap:6px;}
+  .prow{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:7px;background:#1b2128;}
+  .prow.you{outline:1px solid #45c2b7;}
+  .prow.iso{opacity:.55;}
+  .prow.dead{opacity:.35;text-decoration:line-through;}
+  .dot{width:14px;height:14px;border-radius:50%;flex:none;}
+  .prow .nm{flex:1;font-size:13.5px;}
+  .tagx{font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:4px;background:#2a323b;color:#98a4b0;}
+  .tagx.iso{background:#3a3016;color:#d9a441;}
+  .tagx.dead{background:#35201e;color:#e8695e;}
+
+  .lockrow{display:flex;gap:7px;}
+  .slot{flex:1;border:1px solid #2a323b;border-radius:7px;background:#11161b;padding:8px 4px 6px;text-align:center;}
+  .slot .g{font-size:24px;line-height:1.1;}
+  .slot .t{font-size:10px;color:#6f7a86;margin-top:3px;}
+  .slot .who{font-size:10px;color:#8b95a0;margin-top:2px;}
+  .slot.warn{border-color:#e8695e;}
+  .slot.empty .g{color:#39424c;}
+
+  .note{background:#1b2128;border-left:3px solid #d9a441;border-radius:0 7px 7px 0;
+        padding:10px 14px;margin-bottom:12px;font-size:13px;color:#cfd7df;}
+  .note b{color:#d9a441;}
+  .note.sig{border-left-color:#45c2b7;} .note.sig b{color:#45c2b7;}
+  .note.bad{border-left-color:#e8695e;} .note.bad b{color:#e8695e;}
+
+  button{font:inherit;border:none;border-radius:8px;padding:9px 20px;background:#4c7dfc;color:#fff;cursor:pointer;}
+  button:hover{background:#3f6ce0;}
+  button.ghost{background:#2c343d;}
+  button.ghost:hover{background:#374049;}
+  button.sm{padding:5px 12px;font-size:12.5px;}
+  button:disabled{background:#242b33;color:#5b646d;cursor:default;}
+  select{font:inherit;background:#11161b;color:#e3e9ed;border:1px solid #2a323b;border-radius:7px;padding:7px 9px;}
+  label.ck{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13.5px;}
+
+  .big{font-size:17px;}
+  .val{display:inline-flex;align-items:center;gap:5px;background:#11161b;border:1px solid #2a323b;
+       border-radius:6px;padding:3px 9px;font-size:13.5px;}
+  .val .g{font-size:16px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:7px 10px;border-bottom:1px solid #232b33;text-align:left;vertical-align:top;}
+  th{font-size:10.5px;letter-spacing:1.5px;color:#7d8894;text-transform:uppercase;font-weight:500;background:#1b2128;}
+  tbody tr:last-child td{border-bottom:0;}
+  .tw{overflow-x:auto;border:1px solid #232b33;border-radius:9px;}
+
+  .say{padding:7px 0;border-bottom:1px solid #1e252c;font-size:13.5px;}
+  .say:last-child{border-bottom:0;}
+  .say .who{font-weight:600;}
+  .mm{color:#e8695e;font-weight:600;}
+  .ok{color:#45c2b7;} .bad{color:#e8695e;}
+  .hidden{display:none!important;}
+  .muted{color:#7d8894;font-size:12.5px;}
+  .center{text-align:center;}
+  .rowflex{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ===== 설정 ===== -->
+<div id="setup">
+  <div class="box">
+    <h3>8호실 · 웹 프로토타입</h3>
+    <div class="note sig">
+      <b>혼자 하는 규칙 검증용입니다.</b> 당신 외 나머지는 봇입니다.
+      회의에서 <b>누가 무엇을 보냈다고 말하는지</b>와 <b>내 자물쇠에 모순이 생기는지</b>를 대조해서 배신자를 찾으세요.
+    </div>
+    <div class="rowflex" style="margin-bottom:12px;">
+      <div><div class="muted">인원</div>
+        <select id="cnt"><option>5</option><option>6</option><option selected>7</option><option>8</option></select></div>
+      <div><div class="muted">내 역할</div>
+        <select id="myrole">
+          <option value="citizen" selected>참가자로 시작</option>
+          <option value="traitor">배신자로 시작</option>
+          <option value="random">무작위</option>
+        </select></div>
+      <div><div class="muted">위조 횟수</div>
+        <select id="fmax"><option>1</option><option selected>2</option><option>3</option></select></div>
+    </div>
+    <div class="note">
+      <b>규칙 요약</b><br>
+      · 자물쇠는 4칸. 각 칸은 색 4가지 × 모양 4가지 중 하나이며, <b>한 자물쇠 안에서 색과 모양은 겹치지 않습니다.</b><br>
+      · 매 라운드 담당이 새로 섞입니다. 당신은 누군가의 힌트 한 칸을 대신 보고 전달합니다.<br>
+      · 배신자는 전달할 때 <b>값을 몰래 바꿔서</b> 보낼 수 있습니다.<br>
+      · 낮에는 전원이 "누구에게 무엇을 보냈는지 / 무엇을 받았는지"를 공개 보고합니다.<br>
+      · 투표로 지목된 사람은 독방행 — 다음 라운드 전송·수신·발언 불가. 두 번 가면 탈락.
+    </div>
+    <button id="btnStart" class="big">시작</button>
+  </div>
+</div>
+
+<!-- ===== 게임 ===== -->
+<div id="game" class="hidden">
+
+  <div class="bar">
+    <div class="rd" id="rdLabel">1 / 4 라운드</div>
+    <div class="ph night" id="phLabel">밤 · 전달</div>
+    <div class="me" id="meLabel"></div>
+  </div>
+
+  <div class="cols">
+    <!-- 좌측 -->
+    <div>
+      <div class="box">
+        <h3>참가자</h3>
+        <div class="plist" id="plist"></div>
+      </div>
+      <div class="box">
+        <h3>내 자물쇠</h3>
+        <div class="lockrow" id="mylock"></div>
+        <div class="muted" id="lockWarn" style="margin-top:9px;"></div>
+      </div>
+    </div>
+
+    <!-- 우측 -->
+    <div>
+      <div id="panel"></div>
+      <div class="box">
+        <h3>수첩 · 공개 보고 기록</h3>
+        <div class="tw"><table id="ledger"></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+"use strict";
+function $(i){return document.getElementById(i);}
+
+/* ============ 재료 ============ */
+var COLS=[{n:"빨강",h:"#e0483e"},{n:"파랑",h:"#3d8fd1"},{n:"초록",h:"#46a05a"},{n:"노랑",h:"#d8a22b"}];
+var SHPS=[{n:"원",g:"●"},{n:"네모",g:"■"},{n:"세모",g:"▲"},{n:"별",g:"★"}];
+var PCOL=["#e0483e","#e8912f","#d8c22b","#5fa83e","#3d9fd1","#2f4b87","#8b5bc4","#2e9b63"];
+var PNAME=["빨강이","주황이","노랑이","연두","하늘","남색","보라","초록이"];
+
+function vTxt(v){return COLS[v.c].n+" "+SHPS[v.s].n;}
+function vHTML(v){return '<span class="val"><span class="g" style="color:'+COLS[v.c].h+'">'+SHPS[v.s].g+'</span>'+vTxt(v)+'</span>';}
+function sh(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=(Math.random()*(i+1))|0,t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function ri(n){return (Math.random()*n)|0;}
+
+/* ============ 상태 ============ */
+var G=null, SLOTS=4, ROUNDS=4;
+
+function makeLock(){
+  var c=sh([0,1,2,3]), s=sh([0,1,2,3]), o=[];
+  for(var i=0;i<SLOTS;i++) o.push({c:c[i],s:s[i]});
+  return o;
+}
+
+$("btnStart").onclick=function(){
+  var n=parseInt($("cnt").value,10);
+  var nTr = n>=7?2:1;
+  var fmax=parseInt($("fmax").value,10);
+
+  var ps=[];
+  for(var i=0;i<n;i++){
+    ps.push({id:i,name:PNAME[i],col:PCOL[i],you:i===0,role:"citizen",
+             lock:makeLock(),recv:[],iso:0,isolatedNow:false,dead:false,
+             forgeLeft:0,suspect:0});
+  }
+  // 배신자 배정
+  var order=sh(ps.map(function(_,i){return i;}));
+  var myRole=$("myrole").value;
+  var traitors=[];
+  if(myRole==="traitor"){ traitors.push(0); order=order.filter(function(x){return x!==0;}); }
+  while(traitors.length<nTr) traitors.push(order.pop());
+  if(myRole==="citizen"&&traitors.indexOf(0)>=0){
+    traitors=traitors.filter(function(x){return x!==0;});
+    var pool=ps.map(function(_,i){return i;}).filter(function(i){return i!==0&&traitors.indexOf(i)<0;});
+    traitors.push(pool[ri(pool.length)]);
+  }
+  traitors.forEach(function(i){ps[i].role="traitor";ps[i].forgeLeft=fmax;});
+
+  G={ps:ps,n:n,round:1,phase:"night",fmax:fmax,
+     assign:null,sends:null,reports:null,ledger:[],log:[],votes:[],chat:[]};
+  G.log.push("배신자: "+traitors.map(function(i){return ps[i].name;}).join(", "));
+
+  $("setup").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  $("meLabel").innerHTML="당신은 <b>"+ps[0].name+"</b> · "+
+    (ps[0].role==="traitor"?'<b style="color:#e8695e">배신자</b>':'<b style="color:#45c2b7">참가자</b>');
+  startNight();
+};
+
+/* ============ 라운드 배정 ============ */
+function assignRound(){
+  var alive=G.ps.filter(function(p){return !p.dead;}).map(function(p){return p.id;});
+  for(var t=0;t<300;t++){
+    var perm=sh(alive), ok=true, map={};
+    for(var i=0;i<alive.length;i++){
+      if(perm[i]===alive[i]){ok=false;break;}
+      map[alive[i]]=perm[i];
+    }
+    if(ok) return map;   // map[보내는사람] = 받는사람
+  }
+  var m={};
+  for(var i=0;i<alive.length;i++) m[alive[i]]=alive[(i+1)%alive.length];
+  return m;
+}
+
+/* ============ 밤 ============ */
+function startNight(){
+  G.phase="night";
+  G.ps.forEach(function(p){p.isolatedNow=(p.iso>0&&p.isoRound===G.round);});
+  G.assign=assignRound();
+  G.sends={};
+  paint();
+
+  var me=G.ps[0], panel=$("panel");
+  var slot=G.round-1;
+
+  if(me.dead){ autoNight(); return; }
+  if(me.isolatedNow){
+    panel.innerHTML='<div class="box"><h3>밤 · 전달</h3>'+
+      '<div class="note bad"><b>당신은 독방에 있습니다.</b> 이번 라운드에는 힌트를 보내지도, 받지도 못합니다.</div>'+
+      '<button id="go" class="big">밤 넘기기</button></div>';
+    $("go").onclick=function(){ resolveNight(null); };
+    return;
+  }
+
+  var tgt=G.assign[0];
+  if(tgt===undefined){ autoNight(); return; }
+  var t=G.ps[tgt], truth=t.lock[slot];
+
+  var h='<div class="box"><h3>밤 · 전달</h3>';
+  h+='<div class="note sig">이번 라운드 당신의 담당은 <b>'+t.name+'</b> 입니다.</div>';
+  h+='<p class="big">'+t.name+' 의 자물쇠 <b>'+(slot+1)+'번 칸</b> = '+vHTML(truth)+'</p>';
+  if(me.role==="traitor"&&me.forgeLeft>0){
+    h+='<div class="note bad"><b>배신자 능력 · 위조</b> (남은 '+me.forgeLeft+'회)<br>'+
+       '값을 바꿔서 보낼 수 있습니다. 상대는 이것을 정답으로 믿습니다.<br>'+
+       '<span class="muted">단, 자물쇠는 색·모양이 겹치지 않으므로 상대가 이미 받은 것과 겹치면 들통날 수 있습니다.</span></div>';
+    h+='<div class="rowflex" style="margin:10px 0;">'+
+       '<label class="ck"><input type="checkbox" id="doForge"> 위조해서 보내기</label>'+
+       '<select id="fc">'+COLS.map(function(c,i){return '<option value="'+i+'">'+c.n+'</option>';}).join("")+'</select>'+
+       '<select id="fs">'+SHPS.map(function(s,i){return '<option value="'+i+'">'+s.n+'</option>';}).join("")+'</select>'+
+       '</div>';
+    h+='<div class="muted" id="fpre"></div>';
+  }
+  h+='<div style="margin-top:14px;"><button id="send" class="big">전송</button></div></div>';
+  panel.innerHTML=h;
+
+  if($("doForge")){
+    var upd=function(){
+      $("fpre").innerHTML = $("doForge").checked
+        ? '실제로 보낼 값: '+vHTML({c:+$("fc").value,s:+$("fs").value})
+        : '실제로 보낼 값: '+vHTML(truth);
+    };
+    $("doForge").onchange=upd; $("fc").onchange=upd; $("fs").onchange=upd; upd();
+  }
+  $("send").onclick=function(){
+    var val=truth, forged=false;
+    if($("doForge")&&$("doForge").checked){
+      val={c:+$("fc").value,s:+$("fs").value};
+      if(val.c!==truth.c||val.s!==truth.s){forged=true;me.forgeLeft--;}
+    }
+    resolveNight({val:val,forged:forged});
+  };
+}
+
+function autoNight(){ resolveNight(null); }
+
+/* 봇들의 전송 + 수신 확정 */
+function resolveNight(mySend){
+  var slot=G.round-1;
+  var sends={};
+  Object.keys(G.assign).forEach(function(k){
+    var from=+k, to=G.assign[k], p=G.ps[from], t=G.ps[to];
+    if(p.isolatedNow||p.dead) return;
+    var truth=t.lock[slot], val=truth, forged=false;
+
+    if(from===0){
+      if(!mySend) return;
+      val=mySend.val; forged=mySend.forged;
+    } else if(p.role==="traitor"&&p.forgeLeft>0&&Math.random()<0.72){
+      var cand=[];
+      for(var c=0;c<4;c++)for(var s=0;s<4;s++){
+        if(c===truth.c&&s===truth.s) continue;
+        var clash=t.recv.some(function(r){return r.val.c===c||r.val.s===s;});
+        if(!clash) cand.push({c:c,s:s});
+      }
+      if(!cand.length){
+        for(var c2=0;c2<4;c2++)for(var s2=0;s2<4;s2++)
+          if(!(c2===truth.c&&s2===truth.s)) cand.push({c:c2,s:s2});
+      }
+      val=cand[ri(cand.length)]; forged=true; p.forgeLeft--;
+    }
+    sends[from]={to:to,slot:slot,truth:truth,val:val,forged:forged};
+  });
+
+  // 수신 (독방인 사람은 못 받음)
+  Object.keys(sends).forEach(function(k){
+    var s=sends[k], t=G.ps[s.to];
+    if(t.isolatedNow||t.dead) { s.lost=true; return; }
+    t.recv.push({slot:s.slot,val:s.val,from:+k,round:G.round});
+  });
+
+  G.sends=sends;
+  G.log.push("--- "+G.round+"라운드 밤 ---");
+  Object.keys(sends).forEach(function(k){
+    var s=sends[k];
+    G.log.push("  "+G.ps[k].name+" → "+G.ps[s.to].name+" : "+(s.slot+1)+"번 "+vTxt(s.val)+
+      (s.forged?"  ★위조(원래 "+vTxt(s.truth)+")":"")+(s.lost?"  [독방이라 미수신]":""));
+  });
+  startReport();
+}
+
+/* ============ 낮 · 공개 보고 ============ */
+function startReport(){
+  G.phase="report";
+  paint();
+  var me=G.ps[0];
+  var mySend=G.sends[0];
+
+  // 내가 위조했다면 무엇으로 보고할지 선택
+  if(mySend&&mySend.forged&&!me.dead){
+    var h='<div class="box"><h3>낮 · 공개 보고</h3>'+
+      '<div class="note bad">당신은 <b>'+G.ps[mySend.to].name+'</b> 에게 위조된 값을 보냈습니다.<br>'+
+      '무엇을 보냈다고 <b>공개 보고</b>하시겠습니까?</div>'+
+      '<div class="rowflex" style="margin:12px 0;">'+
+      '<button class="ghost" id="rTrue">원래 값으로 보고 &nbsp;'+vHTML(mySend.truth)+'</button>'+
+      '<button class="ghost" id="rForge">보낸 값 그대로 보고 &nbsp;'+vHTML(mySend.val)+'</button>'+
+      '</div>'+
+      '<div class="muted">원래 값으로 보고하면 상대가 받은 것과 어긋나 <b>불일치</b>가 드러납니다. '+
+      '보낸 값 그대로 보고하면 불일치는 없지만, 상대 자물쇠에 색·모양이 겹치면 나중에 걸립니다.</div></div>';
+    $("panel").innerHTML=h;
+    $("rTrue").onclick=function(){doReports(mySend.truth);};
+    $("rForge").onclick=function(){doReports(mySend.val);};
+    return;
+  }
+  doReports(null);
+}
+
+function doReports(myClaim){
+  var reports={};
+  Object.keys(G.sends).forEach(function(k){
+    var s=G.sends[k], from=+k;
+    var claim=s.val;
+    if(from===0&&myClaim) claim=myClaim;
+    else if(from!==0&&G.ps[from].role==="traitor"&&s.forged){
+      // 봇 배신자: 대부분 보낸 값 그대로 보고(안전)
+      claim = Math.random()<0.85 ? s.val : s.truth;
+    }
+    reports[from]={to:s.to,slot:s.slot,claim:claim,lost:!!s.lost};
+  });
+  G.reports=reports;
+
+  // 수신 보고 (전원 정직)
+  var recvClaim={};
+  G.ps.forEach(function(p){
+    if(p.dead) return;
+    var r=p.recv.filter(function(x){return x.round===G.round;})[0];
+    recvClaim[p.id]= r? {slot:r.slot,val:r.val} : null;
+  });
+  G.recvClaim=recvClaim;
+
+  // 수첩 기록
+  G.ledger.push({round:G.round,reports:reports,recv:recvClaim});
+
+  // 봇 발언 생성
+  G.chat=[];
+  G.ps.forEach(function(p){
+    if(p.dead||p.you) return;
+    if(p.isolatedNow){ G.chat.push({who:p,txt:"(독방에 있어 발언할 수 없습니다)",mute:true}); return; }
+    var dup=findDup(p);
+    if(dup){
+      G.chat.push({who:p,txt:"내 힌트 "+(dup.a+1)+"번과 "+(dup.b+1)+"번이 "+dup.kind+
+        "이 겹칩니다. 둘 중 하나는 가짜예요."});
+    }
+  });
+  // 불일치 지적
+  Object.keys(reports).forEach(function(k){
+    var r=reports[k]; if(r.lost) return;
+    var rc=recvClaim[r.to];
+    if(rc&&(rc.val.c!==r.claim.c||rc.val.s!==r.claim.s)){
+      var t=G.ps[r.to];
+      if(!t.dead&&!t.you) G.chat.push({who:t,txt:"잠깐, "+G.ps[k].name+"은 "+vTxt(r.claim)+
+        "을 보냈다는데 나는 "+vTxt(rc.val)+"을 받았어요. 어딘가에서 바뀌었습니다.",mm:true});
+    }
+  });
+
+  renderReport();
+}
+
+function findDup(p){
+  var rs=p.recv;
+  for(var i=0;i<rs.length;i++)for(var j=i+1;j<rs.length;j++){
+    if(rs[i].val.c===rs[j].val.c) return {a:Math.min(rs[i].slot,rs[j].slot),b:Math.max(rs[i].slot,rs[j].slot),kind:"색"};
+    if(rs[i].val.s===rs[j].val.s) return {a:Math.min(rs[i].slot,rs[j].slot),b:Math.max(rs[i].slot,rs[j].slot),kind:"모양"};
+  }
+  return null;
+}
+
+function renderReport(){
+  var h='<div class="box"><h3>낮 · 공개 보고</h3>';
+  h+='<div class="tw" style="margin-bottom:12px;"><table><thead><tr>'+
+     '<th>보낸 사람</th><th>대상</th><th>보냈다고 말한 값</th><th>대상이 받았다는 값</th><th>대조</th>'+
+     '</tr></thead><tbody>';
+  Object.keys(G.reports).forEach(function(k){
+    var r=G.reports[k], rc=G.recvClaim[r.to];
+    var mism = rc && (rc.val.c!==r.claim.c||rc.val.s!==r.claim.s);
+    h+='<tr><td>'+dotName(G.ps[k])+'</td><td>'+dotName(G.ps[r.to])+'</td>'+
+       '<td>'+(r.slot+1)+'번 '+vHTML(r.claim)+'</td>'+
+       '<td>'+(r.lost?'<span class="muted">독방 · 미수신</span>':(rc?(rc.slot+1)+'번 '+vHTML(rc.val):'<span class="muted">-</span>'))+'</td>'+
+       '<td>'+(r.lost?'<span class="muted">-</span>':(mism?'<span class="mm">불일치</span>':'<span class="ok">일치</span>'))+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  if(G.chat.length){
+    h+='<h3 style="margin-top:16px;">회의</h3>';
+    G.chat.forEach(function(c){
+      h+='<div class="say"><span class="who" style="color:'+c.who.col+'">'+c.who.name+'</span> : '+
+         '<span class="'+(c.mm?"mm":"")+'">'+c.txt+'</span></div>';
+    });
+  } else {
+    h+='<div class="muted">아무도 특별한 말을 하지 않습니다.</div>';
+  }
+  h+='<div style="margin-top:16px;"><button id="toVote" class="big">투표하기</button></div></div>';
+  $("panel").innerHTML=h;
+  $("toVote").onclick=startVote;
+  paint();
+}
+
+function dotName(p){
+  return '<span style="display:inline-flex;align-items:center;gap:6px;">'+
+         '<span style="width:10px;height:10px;border-radius:50%;background:'+p.col+';display:inline-block;"></span>'+
+         p.name+(p.you?' <span class="muted">(나)</span>':'')+'</span>';
+}
+
+/* ============ 투표 ============ */
+function startVote(){
+  G.phase="vote";
+  paint();
+  var me=G.ps[0];
+  var opts=G.ps.filter(function(p){return !p.dead;});
+  var h='<div class="box"><h3>투표</h3>';
+  if(me.dead||me.isolatedNow){
+    h+='<div class="note bad">당신은 투표할 수 없습니다.</div><button id="v" class="big">결과 보기</button></div>';
+    $("panel").innerHTML=h; $("v").onclick=function(){tallyVote(-1);}; return;
+  }
+  h+='<div class="note">한 명을 독방으로 보냅니다. 지목된 사람은 다음 라운드에 전송·수신·발언을 못 합니다. '+
+     '<b>두 번 지목되면 탈락</b>합니다.</div>';
+  h+='<div class="rowflex" style="margin:12px 0;"><select id="vsel"><option value="-1">기권</option>';
+  opts.forEach(function(p){ if(!p.you) h+='<option value="'+p.id+'">'+p.name+'</option>'; });
+  h+='</select><button id="v">투표</button></div></div>';
+  $("panel").innerHTML=h;
+  $("v").onclick=function(){ tallyVote(+$("vsel").value); };
+}
+
+function botSuspicion(){
+  // 봇은 불일치 구간과 자기 힌트 모순으로 용의자를 고른다
+  var score={};
+  G.ps.forEach(function(p){ if(!p.dead) score[p.id]=0; });
+  Object.keys(G.reports).forEach(function(k){
+    var r=G.reports[k], rc=G.recvClaim[r.to];
+    if(r.lost||!rc) return;
+    if(rc.val.c!==r.claim.c||rc.val.s!==r.claim.s){
+      score[+k]=(score[+k]||0)+2; score[r.to]=(score[r.to]||0)+1;
+    }
+  });
+  G.ps.forEach(function(p){
+    if(p.dead) return;
+    var d=findDup(p);
+    if(!d) return;
+    p.recv.forEach(function(r){
+      if(r.slot===d.a||r.slot===d.b) score[r.from]=(score[r.from]||0)+1.5;
+    });
+  });
+  return score;
+}
+
+function tallyVote(myVote){
+  var score=botSuspicion();
+  var tally={};
+  G.ps.forEach(function(p){
+    if(p.dead||p.isolatedNow) return;
+    var v=-1;
+    if(p.you){ v=myVote; }
+    else if(p.role==="traitor"){
+      // 배신자 봇: 의심 높은 시민에게 몰표
+      var cands=G.ps.filter(function(q){return !q.dead&&q.role!=="traitor"&&q.id!==p.id;});
+      cands.sort(function(a,b){return (score[b.id]||0)-(score[a.id]||0);});
+      v=cands.length?cands[0].id:-1;
+    } else {
+      var cs=G.ps.filter(function(q){return !q.dead&&q.id!==p.id;});
+      cs.sort(function(a,b){return (score[b.id]||0)-(score[a.id]||0);});
+      var top=cs[0];
+      v=(score[top.id]||0)>0 ? (Math.random()<0.75?top.id:cs[ri(cs.length)].id)
+                             : (Math.random()<0.4?cs[ri(cs.length)].id:-1);
+    }
+    if(v>=0) tally[v]=(tally[v]||0)+1;
+  });
+
+  var best=-1,bn=0,tie=false;
+  Object.keys(tally).forEach(function(k){
+    if(tally[k]>bn){bn=tally[k];best=+k;tie=false;}
+    else if(tally[k]===bn) tie=true;
+  });
+
+  var h='<div class="box"><h3>투표 결과</h3><div class="tw"><table><thead><tr><th>대상</th><th>득표</th></tr></thead><tbody>';
+  G.ps.forEach(function(p){ if(!p.dead&&tally[p.id]) h+='<tr><td>'+dotName(p)+'</td><td>'+tally[p.id]+'표</td></tr>'; });
+  h+='</tbody></table></div>';
+
+  if(best<0||tie){
+    h+='<div class="note" style="margin-top:12px;">동수 또는 기권 과반. <b>아무도 독방에 가지 않습니다.</b></div>';
+    G.log.push("  투표: 무효");
+  } else {
+    var t=G.ps[best];
+    t.iso++; t.isoRound=G.round+1;
+    if(t.iso>=2){
+      t.dead=true;
+      h+='<div class="note bad" style="margin-top:12px;"><b>'+t.name+'</b> 두 번째 지목 — <b>탈락</b>합니다. 탈출 실패로 확정됩니다.</div>';
+      G.log.push("  투표: "+t.name+" 탈락");
+    } else {
+      h+='<div class="note" style="margin-top:12px;"><b>'+t.name+'</b> 독방행. 다음 라운드에 전송·수신·발언을 못 합니다.</div>';
+      G.log.push("  투표: "+t.name+" 독방");
+    }
+  }
+  h+='<div style="margin-top:14px;"><button id="nx" class="big">'+
+     (G.round>=ROUNDS?'최종 개방으로':'다음 라운드')+'</button></div></div>';
+  $("panel").innerHTML=h;
+  $("nx").onclick=function(){
+    if(G.round>=ROUNDS) startFinal();
+    else { G.round++; startNight(); }
+  };
+  paint();
+}
+
+/* ============ 최종 ============ */
+function startFinal(){
+  G.phase="final";
+  paint();
+  var me=G.ps[0];
+  var h='<div class="box"><h3>최종 · 자물쇠 개방</h3>';
+  if(me.dead){
+    h+='<div class="note bad">당신은 탈락했습니다. 결과만 확인합니다.</div><button id="j" class="big">판정</button></div>';
+    $("panel").innerHTML=h; $("j").onclick=judge; return;
+  }
+  h+='<div class="note">받은 힌트를 조합해 네 칸을 맞추세요. 모순이 있다고 판단되면 다른 값을 넣어도 됩니다.</div>';
+  h+='<div class="rowflex" style="margin:12px 0;">';
+  for(var k=0;k<SLOTS;k++){
+    var got=me.recv.filter(function(r){return r.slot===k;})[0];
+    h+='<div><div class="muted">'+(k+1)+'번 칸'+(got?'':' <span class="bad">미수신</span>')+'</div>'+
+       '<select id="ac'+k+'">'+COLS.map(function(c,i){return '<option value="'+i+'"'+(got&&got.val.c===i?' selected':'')+'>'+c.n+'</option>';}).join("")+'</select> '+
+       '<select id="as'+k+'">'+SHPS.map(function(s,i){return '<option value="'+i+'"'+(got&&got.val.s===i?' selected':'')+'>'+s.n+'</option>';}).join("")+'</select></div>';
+  }
+  h+='</div><button id="j" class="big">개방 시도</button></div>';
+  $("panel").innerHTML=h;
+  $("j").onclick=judge;
+}
+
+function judge(){
+  var me=G.ps[0];
+  G.ps.forEach(function(p){
+    if(p.dead){ p.escaped=false; p.answer=null; return; }
+    var ans=[];
+    for(var k=0;k<SLOTS;k++){
+      if(p.you&&!me.dead){ ans.push({c:+$("ac"+k).value,s:+$("as"+k).value}); }
+      else{
+        var got=p.recv.filter(function(r){return r.slot===k;})[0];
+        ans.push(got?got.val:{c:ri(4),s:ri(4)});
+      }
+    }
+    p.answer=ans;
+    p.escaped=ans.every(function(v,k){return v.c===p.lock[k].c&&v.s===p.lock[k].s;});
+  });
+
+  var failed=G.ps.filter(function(p){return !p.escaped;});
+  var need = G.n>=7?3:2;
+  var traitorWin = failed.length>=need;
+
+  var h='<div class="box"><h3>결과</h3>';
+  h+='<div style="font-size:24px;font-weight:700;letter-spacing:3px;margin-bottom:10px;color:'+
+     (traitorWin?'#e8695e':'#45c2b7')+'">'+(traitorWin?'배신자 승리':'참가자 승리')+'</div>';
+  h+='<div class="muted" style="margin-bottom:14px;">탈출 실패 '+failed.length+'명 (배신자 승리 조건: '+need+'명 이상)</div>';
+  h+='<div class="tw"><table><thead><tr><th>이름</th><th>역할</th><th>결과</th><th>제출</th><th>정답</th><th>위조당함</th></tr></thead><tbody>';
+  G.ps.forEach(function(p){
+    var forged=p.recv.filter(function(r){
+      return r.val.c!==p.lock[r.slot].c||r.val.s!==p.lock[r.slot].s;
+    }).map(function(r){return (r.slot+1)+'번';}).join(", ");
+    h+='<tr><td>'+dotName(p)+'</td>'+
+       '<td>'+(p.role==="traitor"?'<span class="bad">배신자</span>':'참가자')+'</td>'+
+       '<td class="'+(p.escaped?'ok':'bad')+'">'+(p.escaped?'탈출':(p.dead?'탈락':'실패'))+'</td>'+
+       '<td>'+(p.answer?p.answer.map(vHTML).join(" "):'<span class="muted">-</span>')+'</td>'+
+       '<td>'+p.lock.map(vHTML).join(" ")+'</td>'+
+       '<td class="bad">'+(forged||'-')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div style="margin-top:16px;"><button onclick="location.reload()" class="big">다시</button></div>';
+  h+='<h3 style="margin-top:20px;">전체 로그</h3><div class="tw" style="padding:12px;font-size:12.5px;white-space:pre-wrap;line-height:1.8;">'+
+     G.log.join("\n")+'</div></div>';
+  $("panel").innerHTML=h;
+  G.phase="done";
+  paint();
+}
+
+/* ============ 화면 ============ */
+function paint(){
+  $("rdLabel").textContent=(G.phase==="final"||G.phase==="done")?"최종":(G.round+" / "+ROUNDS+" 라운드");
+  var pl=$("phLabel");
+  var m={night:["night","밤 · 전달"],report:["day","낮 · 공개 보고"],vote:["day","낮 · 투표"],
+         final:["fin","최종 · 개방"],done:["fin","종료"]}[G.phase];
+  pl.className="ph "+m[0]; pl.textContent=m[1];
+
+  var h="";
+  G.ps.forEach(function(p){
+    var cls="prow"+(p.you?" you":"")+(p.isolatedNow?" iso":"")+(p.dead?" dead":"");
+    h+='<div class="'+cls+'"><span class="dot" style="background:'+p.col+'"></span>'+
+       '<span class="nm">'+p.name+(p.you?' (나)':'')+'</span>'+
+       (p.dead?'<span class="tagx dead">탈락</span>':
+        p.isolatedNow?'<span class="tagx iso">독방</span>':
+        p.iso>0?'<span class="tagx">경고 '+p.iso+'</span>':'')+
+       '</div>';
+  });
+  $("plist").innerHTML=h;
+
+  var me=G.ps[0], dup=findDup(me), lh="";
+  for(var k=0;k<SLOTS;k++){
+    var got=me.recv.filter(function(r){return r.slot===k;})[0];
+    var warn=dup&&(dup.a===k||dup.b===k);
+    lh+='<div class="slot'+(got?'':' empty')+(warn?' warn':'')+'">'+
+        '<div class="g" style="color:'+(got?COLS[got.val.c].h:'#39424c')+'">'+(got?SHPS[got.val.s].g:'?')+'</div>'+
+        '<div class="t">'+(k+1)+'번</div>'+
+        '<div class="who">'+(got?G.ps[got.from].name:'-')+'</div></div>';
+  }
+  $("mylock").innerHTML=lh;
+  $("lockWarn").innerHTML = dup
+    ? '<span class="bad">'+(dup.a+1)+'번과 '+(dup.b+1)+'번의 '+dup.kind+'이 겹칩니다 — 둘 중 하나는 가짜입니다.</span>'
+    : '<span class="muted">색·모양이 겹치면 여기에 경고가 뜹니다.</span>';
+
+  var t='<thead><tr><th>라운드</th><th>보낸 사람 → 대상</th><th>보냈다고 말한 값</th><th>대상이 받았다는 값</th></tr></thead><tbody>';
+  if(!G.ledger.length) t+='<tr><td colspan="4" class="muted">아직 기록이 없습니다.</td></tr>';
+  G.ledger.forEach(function(L){
+    Object.keys(L.reports).forEach(function(k){
+      var r=L.reports[k], rc=L.recv[r.to];
+      var mism=rc&&(rc.val.c!==r.claim.c||rc.val.s!==r.claim.s);
+      t+='<tr><td>'+L.round+'</td><td>'+G.ps[k].name+' → '+G.ps[r.to].name+'</td>'+
+         '<td>'+(r.slot+1)+'번 '+vHTML(r.claim)+'</td>'+
+         '<td>'+(r.lost?'<span class="muted">미수신</span>':(rc?vHTML(rc.val)+(mism?' <span class="mm">불일치</span>':''):'-'))+'</td></tr>';
+    });
+  });
+  t+='</tbody>';
+  $("ledger").innerHTML=t;
+}
+</script>
+</body>
+</html>
