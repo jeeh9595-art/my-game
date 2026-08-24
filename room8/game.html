@@ -209,6 +209,8 @@ var MAXP=8;
 var HALL_R=10, ROOM_D=17.5, ROOM_W=6.6, ROOM_L=6.2, DOOR_W=2.6, WALL_H=3.2, WALL_T=0.35;
 var scene,camera,renderer,clock,hemi,hallLamp,roomLights=[],doors=[],consoles=[];
 var colliders=[], avatars={}, meMesh=null, hallScreen=null;
+var MAILBOX=[], mailMesh=[], objMesh={}, OBJS=[];
+var HAND_F=0.55, HAND_H=1.15;   // 손 위치(앞으로, 높이)
 
 function roomAngle(i){ return -PI/2+i*(PI*2/MAXP); }
 function roomCenter(i){ var a=roomAngle(i); return {x:Math.cos(a)*ROOM_D,z:Math.sin(a)*ROOM_D,a:a}; }
@@ -361,6 +363,54 @@ function buildRoom(i){
 
   var l=new THREE.PointLight(col,0.5,12,2);
   l.position.set(0.4,2.6,0); g.add(l); roomLights[i]=l;
+
+  // 우편함 (문 바깥, 옆으로 비켜서)
+  var mb=new THREE.Group();
+  mb.position.set(-ROOM_L/2-0.75,0,1.55);
+  var post=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.95,10),
+    new THREE.MeshStandardMaterial({color:0x4a5462,roughness:0.8}));
+  post.position.y=0.47; post.castShadow=true; mb.add(post);
+  var boxm=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.34,0.56),
+    new THREE.MeshStandardMaterial({color:col,roughness:0.5}));
+  boxm.position.y=1.12; boxm.castShadow=true; mb.add(boxm);
+  var slot=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.05,0.4),
+    new THREE.MeshStandardMaterial({color:0x101318}));
+  slot.position.set(-0.21,1.15,0); mb.add(slot);
+  var flag=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.26,0.03),
+    new THREE.MeshStandardMaterial({color:0xf2f4f7}));
+  flag.position.set(0.19,1.36,0); mb.add(flag);
+  g.add(mb);
+  mailMesh[i]=mb;
+  var mp=new THREE.Vector3(-ROOM_L/2-0.75,0,1.55); g.localToWorld(mp);
+  MAILBOX[i]={x:mp.x,z:mp.z};
+  addCol(mp.x,mp.z,0.3,0.3);
+}
+
+/* ---------- 사물 ---------- */
+var OT_BALL=0, OT_BOX=1, OT_BOOK=2;
+function makeObjMesh(type,colorIdx){
+  var g=new THREE.Group();
+  if(type===OT_BOOK){
+    var cover=new THREE.Mesh(new THREE.BoxGeometry(0.34,0.06,0.44),
+      new THREE.MeshStandardMaterial({color:colorIdx>=0?ROOM_COLORS[colorIdx%8]:0xdedede,roughness:0.5}));
+    cover.castShadow=true; g.add(cover);
+    var page=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.07,0.4),
+      new THREE.MeshStandardMaterial({color:0xf7f7f2,roughness:0.9}));
+    page.position.y=0.005; g.add(page);
+    g.userData.r=0.24;
+  } else if(type===OT_BOX){
+    var b=new THREE.Mesh(new THREE.BoxGeometry(0.44,0.44,0.44),
+      new THREE.MeshStandardMaterial({color:0x9a7b52,roughness:0.9}));
+    b.castShadow=true; g.add(b);
+    g.userData.r=0.24;
+  } else {
+    var s2=new THREE.Mesh(new THREE.SphereGeometry(0.22,16,12),
+      new THREE.MeshStandardMaterial({color:0xe8eaee,roughness:0.6}));
+    s2.castShadow=true; g.add(s2);
+    g.userData.r=0.22;
+  }
+  scene.add(g);
+  return g;
 }
 
 function makeLabel(text,color,size){
@@ -442,7 +492,7 @@ function makeAvatar(name,slot){
 }
 
 /* ============ 이동 ============ */
-var me={x:0,z:HALL_R*0.5,ry:0,y:0,vy:0,ground:true,mode:0,punch:0,pc:0,kx:0,kz:0,
+var me={x:0,z:HALL_R*0.5,ry:0,y:0,vy:0,ground:true,mode:0,punch:0,pc:0,kx:0,kz:0,hold:-1,
         walk:4.2,run:7.4,jumpV:5.6,grav:15.5};
 var camYaw=0,camPitch=0.42,camDist=7.2;
 var keys={},started=false;
@@ -450,6 +500,7 @@ var keys={},started=false;
 window.addEventListener("keydown",function(e){
   var k=e.key.toLowerCase();
   if(document.activeElement&&/input|select|textarea/i.test(document.activeElement.tagName)) return;
+  if(k==="e"&&!keys.e) doInteract();
   keys[k]=true;
   if(["arrowup","arrowdown","arrowleft","arrowright"," "].indexOf(k)>=0) e.preventDefault();
 });
@@ -464,7 +515,7 @@ var dragging=false,lastX=0,lastY=0,dragId=-1;
     dragging=true; dragId=e.pointerId; lastX=e.clientX; lastY=e.clientY;
     downT=Date.now(); downX=e.clientX; downY=e.clientY;
     cv.setPointerCapture(e.pointerId);
-    if(e.pointerType==="mouse"&&e.button===0) doPunch();
+    if(e.pointerType==="mouse"&&e.button===0) primaryAction();
   });
   cv.addEventListener("pointermove",function(e){
     if(!dragging||e.pointerId!==dragId) return;
@@ -476,7 +527,7 @@ var dragging=false,lastX=0,lastY=0,dragId=-1;
     if(e&&e.pointerId!==dragId) return;
     if(e&&e.pointerType&&e.pointerType!=="mouse"){
       var moved=Math.hypot(e.clientX-downX,e.clientY-downY);
-      if(moved<12&&Date.now()-downT<260) doPunch();
+      if(moved<12&&Date.now()-downT<260) primaryAction();
     }
     dragging=false; dragId=-1;
   }
@@ -577,6 +628,54 @@ function doPunch(){
   });
   if(best>=0) toHost({t:"hit",target:best});
 }
+/* ---------- 사물 상호작용 ---------- */
+function handPos(){
+  return {x:me.x+Math.sin(me.ry)*HAND_F, y:me.y+HAND_H, z:me.z+Math.cos(me.ry)*HAND_F};
+}
+function nearestObj(maxd){
+  var best=null,bd=maxd||1.9;
+  for(var i=0;i<OBJS.length;i++){
+    var o=OBJS[i];
+    if(o[5]>=0) continue;                     // 남이 들고 있음
+    var d=Math.hypot(o[2]-me.x,o[4]-me.z);
+    if(d<bd){ bd=d; best=o; }
+  }
+  return best;
+}
+function nearestMailbox(maxd){
+  var best=-1,bd=maxd||2.0;
+  for(var i=0;i<MAILBOX.length;i++){
+    if(!MAILBOX[i]) continue;
+    if(!PUB||!PUB.players[i]) continue;
+    var d=Math.hypot(MAILBOX[i].x-me.x,MAILBOX[i].z-me.z);
+    if(d<bd){ bd=d; best=i; }
+  }
+  return best;
+}
+function myHeld(){
+  for(var i=0;i<OBJS.length;i++) if(OBJS[i][5]===mySlot()) return OBJS[i];
+  return null;
+}
+function doInteract(){
+  if(!started) return;
+  var held=myHeld();
+  if(held){
+    var mb=nearestMailbox();
+    if(mb>=0&&held[1]===OT_BOOK){ toHost({t:"mail",room:mb}); return; }
+    toHost({t:"drop"}); return;
+  }
+  var o=nearestObj();
+  if(o) toHost({t:"pick",id:o[0]});
+}
+function primaryAction(){
+  if(!started) return;
+  if(myHeld()){
+    toHost({t:"throw",ry:+me.ry.toFixed(2)});
+    return;
+  }
+  doPunch();
+}
+
 function takeHit(fromSlot){
   var a=avatars[fromSlot];
   var sx=1,sz=0;
@@ -653,6 +752,73 @@ function hostOpen(){
   });
   try{ peer.on("call",onIncomingCall); }catch(e){}
 }
+/* ---------- 호스트 사물 상태 ---------- */
+var OBJID=1;
+function hostObjInit(){
+  G.objs=[];
+  for(var i=0;i<6;i++){
+    var a=Math.random()*Math.PI*2, r=3+Math.random()*5;
+    G.objs.push({id:OBJID++,type:(i%2)?OT_BOX:OT_BALL,
+      x:Math.cos(a)*r,y:0.3,z:Math.sin(a)*r,vx:0,vy:0,vz:0,held:-1,color:-1,data:null});
+  }
+}
+function hostSpawnBook(ownerSlot,targetSlot,strokes,round){
+  var o={id:OBJID++,type:OT_BOOK,x:0,y:1,z:0,vx:0,vy:0,vz:0,
+         held:ownerSlot,color:targetSlot,data:{from:ownerSlot,strokes:strokes,round:round}};
+  G.objs.push(o);
+  return o;
+}
+function hostObjStep(dt){
+  if(!G||!G.objs) return;
+  var GR=16;
+  for(var i=0;i<G.objs.length;i++){
+    var o=G.objs[i];
+    if(o.held>=0){
+      var p=G.players[o.held];
+      if(!p){ o.held=-1; continue; }
+      o.x=p.x+Math.sin(p.ry)*HAND_F;
+      o.z=p.z+Math.cos(p.ry)*HAND_F;
+      o.y=(p.y||0)+HAND_H;
+      o.vx=o.vy=o.vz=0;
+      continue;
+    }
+    o.vy-=GR*dt;
+    var nx=o.x+o.vx*dt, nz=o.z+o.vz*dt;
+    if(!collideAt(nx,o.z)) o.x=nx; else o.vx*=-0.4;
+    if(!collideAt(o.x,nz)) o.z=nz; else o.vz*=-0.4;
+    o.y+=o.vy*dt;
+    if(o.y<=0.24){
+      o.y=0.24;
+      if(o.vy<-0.6){ o.vy=-o.vy*0.32; } else { o.vy=0; }
+      o.vx*=0.86; o.vz*=0.86;
+      if(Math.abs(o.vx)<0.05) o.vx=0;
+      if(Math.abs(o.vz)<0.05) o.vz=0;
+    }
+    var d=Math.hypot(o.x,o.z);
+    if(d>31){ o.x*=31/d; o.z*=31/d; o.vx*=-0.3; o.vz*=-0.3; }
+  }
+}
+function collideAt(x,z){
+  for(var i=0;i<colliders.length;i++){
+    var c=colliders[i];
+    if(c.door!==undefined&&!doorsClosed) continue;
+    if(x>c.x-c.hw-0.2&&x<c.x+c.hw+0.2&&z>c.z-c.hh-0.2&&z<c.z+c.hh+0.2) return true;
+  }
+  return false;
+}
+function hostDropHeld(slot,vx,vy,vz){
+  if(!G||!G.objs) return null;
+  for(var i=0;i<G.objs.length;i++){
+    var o=G.objs[i];
+    if(o.held===slot){
+      o.held=-1;
+      o.vx=vx||0; o.vy=vy||0; o.vz=vz||0;
+      return o;
+    }
+  }
+  return null;
+}
+
 function mkPlayer(name,slot,cid){
   return {name:name,slot:slot,cid:cid,peerId:"",online:true,role:"citizen",
           iso:0,isoRound:-1,dead:false,wa:"",wb:"",recv:[],answer:null,escaped:false,
@@ -676,17 +842,66 @@ function hostMsg(c,m){
   if(m.t==="pos"){ pl.x=m.x; pl.z=m.z; pl.ry=m.ry; pl.y=m.y||0; pl.mode=m.m||0; pl.pc=m.pc||0; return; }
   if(m.t==="hit"){
     var tp=G.players[m.target];
+    hostDropHeld(m.target,(Math.random()-0.5)*2,3.2,(Math.random()-0.5)*2);
     if(tp&&tp.slot===0) takeHit(pl.slot);
     else if(tp) send(tp,{t:"hit",from:pl.slot});
     return;
   }
+  if(m.t==="pick"||m.t==="throw"||m.t==="drop"||m.t==="mail"){ hostObjCmd(pl.slot,m); return; }
   if(m.t==="tvote"){ G.themeVotes[pl.slot]=m.i; pushAll(); return; }
   if(m.t==="words"){ pl.wa=String(m.a||"").trim(); pl.wb=String(m.b||"").trim(); pushAll(); return; }
-  if(m.t==="draw"){ (G.draws[G.round]=G.draws[G.round]||{})[pl.slot]=m.strokes||[]; pushAll(); return; }
+  if(m.t==="draw"){
+    if((G.draws[G.round]||{})[pl.slot]!==undefined) return;
+    (G.draws[G.round]=G.draws[G.round]||{})[pl.slot]=m.strokes||[];
+    var to=G.miss[G.round-1][pl.slot];
+    hostSpawnBook(pl.slot,to,m.strokes||[],G.round);
+    pushAll(); return;
+  }
   if(m.t==="vote"){ G.votes[pl.slot]=m.target; pushAll(); return; }
   if(m.t==="answer"){ pl.answer=m.arr; pushAll(); return; }
 }
 function send(p,msg){ var c=NET.conns[p.cid]; if(c&&c.open){ try{c.send(msg);}catch(e){} } }
+
+function hostObjCmd(slot,m){
+  if(!G||!G.objs) return;
+  var pl=G.players[slot]; if(!pl) return;
+  var held=null;
+  G.objs.forEach(function(o){ if(o.held===slot) held=o; });
+
+  if(m.t==="pick"){
+    if(held) return;
+    var best=null,bd=2.1;
+    G.objs.forEach(function(o){
+      if(o.held>=0) return;
+      var d=Math.hypot(o.x-pl.x,o.z-pl.z);
+      if(d<bd){ bd=d; best=o; }
+    });
+    if(best) best.held=slot;
+    return;
+  }
+  if(m.t==="drop"){ hostDropHeld(slot,0,0,0); return; }
+  if(m.t==="throw"){
+    var ry=m.ry||pl.ry, sp=9.5;
+    hostDropHeld(slot,Math.sin(ry)*sp,4.2,Math.cos(ry)*sp);
+    return;
+  }
+  if(m.t==="mail"){
+    if(!held||held.type!==OT_BOOK) return;
+    var room=m.room;
+    var target=G.players[room]; if(!target) return;
+    var d=MAILBOX[room]?Math.hypot(MAILBOX[room].x-pl.x,MAILBOX[room].z-pl.z):99;
+    if(d>2.4) return;
+    var dat=held.data||{};
+    target.recv.push({round:dat.round||G.round,from:dat.from,slot:(dat.round||G.round)-1,
+                      strokes:dat.strokes||null});
+    // 배달된 책은 사라진다
+    for(var i=0;i<G.objs.length;i++) if(G.objs[i]===held){ G.objs.splice(i,1); break; }
+    if(target.slot===0){ PRIV=privState(G.players[0]); }
+    send(target,{t:"mailin"});
+    pushAll();
+    return;
+  }
+}
 
 function pubState(){
   var d=G.draws[G.round]||{};
@@ -730,11 +945,13 @@ function pushWorld(){
   var w={t:"w",p:G.players.map(function(p){
     return [p.slot,+p.x.toFixed(2),+p.z.toFixed(2),+p.ry.toFixed(2),
             +(p.y||0).toFixed(2),p.mode||0,p.pc||0];
+  }),o:(G.objs||[]).map(function(o){
+    return [o.id,o.type,+o.x.toFixed(2),+o.y.toFixed(2),+o.z.toFixed(2),o.held,o.color];
   })};
   Object.keys(NET.conns).forEach(function(k){
     var c=NET.conns[k]; if(c&&c.open){ try{c.send(w);}catch(e){} }
   });
-  WORLD=w.p;
+  WORLD=w.p; OBJS=w.o;
 }
 function themeTally(){
   var t={};
@@ -761,7 +978,8 @@ function clientMsg(m){
   if(m.t==="deny"){ fail(m.why); return; }
   if(m.t==="hello"){ NET.slot=m.slot; NET.code=m.code; showLobby(); return; }
   if(m.t==="sync"){ PUB=m.pub; PRIV=m.priv; onState(); return; }
-  if(m.t==="w"){ WORLD=m.p; return; }
+  if(m.t==="w"){ WORLD=m.p; OBJS=m.o||[]; return; }
+  if(m.t==="mailin"){ flash(); return; }
   if(m.t==="hit"){ takeHit(m.from); return; }
 }
 function toHost(msg){
@@ -772,12 +990,20 @@ function hostSelf(m){
   var p=G.players[0];
   if(m.t==="hit"){
     var tp=G.players[m.target];
+    hostDropHeld(m.target,(Math.random()-0.5)*2,3.2,(Math.random()-0.5)*2);
     if(tp&&tp.slot!==0) send(tp,{t:"hit",from:0});
     return;
   }
+  if(m.t==="pick"||m.t==="throw"||m.t==="drop"||m.t==="mail"){ hostObjCmd(0,m); return; }
   if(m.t==="tvote"){ G.themeVotes[0]=m.i; pushAll(); }
   else if(m.t==="words"){ p.wa=m.a; p.wb=m.b; pushAll(); }
-  else if(m.t==="draw"){ (G.draws[G.round]=G.draws[G.round]||{})[0]=m.strokes||[]; pushAll(); }
+  else if(m.t==="draw"){
+    if((G.draws[G.round]||{})[0]===undefined){
+      (G.draws[G.round]=G.draws[G.round]||{})[0]=m.strokes||[];
+      hostSpawnBook(0,G.miss[G.round-1][0],m.strokes||[],G.round);
+    }
+    pushAll();
+  }
   else if(m.t==="vote"){ G.votes[0]=m.target; pushAll(); }
   else if(m.t==="answer"){ p.answer=m.arr; pushAll(); }
 }
@@ -854,10 +1080,12 @@ function advance(){
     G.locks=RL.buildLocks(n,G.words,rnd);
     G.miss=RL.buildAssignments(n,RL.ROUNDS,rnd);
     G.draws={}; G.round=1; G.phase="night"; G.tEnd=now()+RL.TIME.night*1000;
+    hostObjInit();
     pushAll(); return;
   }
   if(ph==="night"){
-    RL.deliver(G.players,G.miss[G.round-1],G.draws[G.round]||{},G.locks,G.round);
+    // 배달은 우편함으로만 이루어진다. 남은 스케치북은 사라진다.
+    G.objs=(G.objs||[]).filter(function(o){ return o.type!==OT_BOOK; });
     G.phase="day"; G.tEnd=now()+RL.TIME.day*1000; pushAll(); return;
   }
   if(ph==="day"){
@@ -961,7 +1189,16 @@ function renderHUD(){
   } else if(PUB.phase==="day") hint="중앙 홀에 모여서 이야기하세요";
   else if(PUB.phase==="vote") hint="투표 패널에서 한 명을 고르세요";
   else if(PUB.phase==="final") hint=inRoom(mySlot())?"자물쇠를 맞춰 보세요":"내 방으로 돌아가세요";
-  $("hint").textContent=hint||"WASD 이동 · Shift 달리기 · Space 점프 · 좌클릭 펀치";
+  var act="";
+  if(started){
+    var held=myHeld();
+    if(held){
+      var mb=nearestMailbox();
+      if(mb>=0&&held[1]===OT_BOOK) act="E — "+(mb+1)+"호실 우편함에 넣기";
+      else act="좌클릭 — 던지기 · E — 내려놓기";
+    } else if(nearestObj()) act="E — 줍기";
+  }
+  $("hint").textContent=act||hint||"WASD 이동 · Shift 달리기 · Space 점프 · E 줍기 · 좌클릭 펀치/던지기";
 
   $("btnBoard").classList.toggle("hidden",!(PUB.board&&PUB.board.length));
   $("btnGal").classList.toggle("hidden",!(PRIV&&PRIV.recv&&PRIV.recv.length));
@@ -1033,7 +1270,13 @@ function renderPanel(){
         '<b>이번 라운드는 쉽니다.</b> 독방에 있거나 탈락했습니다.</div>'; return;
     }
     if(PRIV.sent){
-      b.innerHTML='<h2>'+PUB.round+' 라운드 · 밤</h2><div class="note"><b>전송 완료.</b> 다른 사람을 기다리는 중입니다.</div>'; return;
+      var bk=myHeld();
+      b.innerHTML='<h2>'+PUB.round+' 라운드 · 밤</h2>'+
+        (bk?'<div class="note y"><b>스케치북을 들고 있습니다.</b><br>'+
+            esc(PRIV.mission.toName)+' 의 방 앞 <b>우편함</b>까지 가서 <b>E</b>를 누르세요.<br>'+
+            '<span class="muted">가는 길에 맞으면 떨어뜨립니다. 다른 사람 우편함에 넣으면 그 사람이 받습니다.</span></div>'
+           :'<div class="note"><b>그림은 보냈습니다.</b><br>스케치북이 손에 없습니다 — 떨어뜨렸다면 주워서(<b>E</b>) 배달하세요.</div>');
+      return;
     }
     var wi=(myFake>=0?myFake:PRIV.mission.wordIdx);
     var isTr=PRIV.role==="traitor";
@@ -1060,7 +1303,7 @@ function renderPanel(){
     };
     initPad();
     $("clr").onclick=function(){ strokes=[]; clearPad(); };
-    $("snd").onclick=function(){ toHost({t:"draw",strokes:strokes}); };
+    $("snd").onclick=function(){ toHost({t:"draw",strokes:strokes}); closePanel(); };
     return;
   }
 
@@ -1318,11 +1561,40 @@ function tick(){
         pushWorld();
       }
     }
+    if(NET.mode==="host"&&G&&G.objs){ hostObjStep(dt); }
     syncAvatars(dt);
+    syncObjects(dt);
     if(PUB) renderHUD();
   }
   renderer.render(scene,camera);
 }
+function syncObjects(dt){
+  var seen={};
+  OBJS.forEach(function(o){
+    var id=o[0]; seen[id]=1;
+    var m=objMesh[id];
+    if(!m){ m=objMesh[id]=makeObjMesh(o[1],o[6]); }
+    var tx=o[2],ty=o[3],tz=o[4];
+    if(o[5]===mySlot()){
+      var h=handPos(); tx=h.x; ty=h.y; tz=h.z;
+      m.rotation.y=me.ry;
+    } else if(o[5]>=0){
+      var a=avatars[o[5]];
+      if(a){ tx=a.group.position.x+Math.sin(a.group.rotation.y)*HAND_F;
+             tz=a.group.position.z+Math.cos(a.group.rotation.y)*HAND_F;
+             ty=a.group.position.y+HAND_H; m.rotation.y=a.group.rotation.y; }
+    } else {
+      m.rotation.y+=dt*0.6;
+    }
+    m.position.x+=(tx-m.position.x)*Math.min(1,dt*18);
+    m.position.y+=(ty-m.position.y)*Math.min(1,dt*18);
+    m.position.z+=(tz-m.position.z)*Math.min(1,dt*18);
+  });
+  Object.keys(objMesh).forEach(function(k){
+    if(!seen[k]){ scene.remove(objMesh[k]); delete objMesh[k]; }
+  });
+}
+
 function syncAvatars(dt){
   if(!PUB) return;
   var seen={};

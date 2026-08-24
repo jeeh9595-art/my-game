@@ -16,7 +16,7 @@ R.ROUNDS = 4;
 R.MIN_PLAYERS = 3;
 R.MAX_PLAYERS = 8;
 
-R.TIME = { theme: 40, words: 70, night: 100, day: 150, vote: 35, final: 80 };
+R.TIME = { theme: 40, words: 70, night: 130, day: 150, vote: 35, final: 80 };
 
 R.THEMES = ["동물", "음식", "가전제품", "탈것", "직업", "스포츠", "학용품", "과일"];
 
