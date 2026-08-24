@@ -142,6 +142,8 @@
   </div>
   <div id="where"></div>
   <div id="hint"></div>
+  <div id="dbg" style="position:absolute;bottom:6px;left:0;right:0;text-align:center;
+       font-size:11px;color:#6f7a86;"></div>
   <div id="stick"><i></i></div>
   <div id="flash"></div>
 </div>
@@ -518,12 +520,30 @@ function limb(parent,len,rad,mat,x,y,z){
 /* ================= 캐릭터 모델 =================
    외형: Hyper Casual Character (J-Toastie, poly.pizza, CC BY 3.0)
    동작: Mixamo 규격 클립을 옮겨 붙인다. 두 모델 모두 mixamorig 뼈대라 이름이 맞는다. */
-var CHAR={state:"loading",proto:null,clips:{},scale:1,yOff:0};
+var CHAR={state:"loading",proto:null,clips:{},scale:1,yOff:0,meshK:1,boneH:0,userK:1};
 var CHAR_FILE="char/hc.glb";      // 외형
 var ANIM_FILE="char/Xbot.glb";    // 동작 제공용
 var CHAR_HEIGHT=1.55;             // 이 키에 맞춰 자동으로 크기를 맞춘다
 
 /* 머리끝 뼈와 발 뼈의 실제 월드 높이로 키를 잰다 */
+/* 캐릭터 배율을 직접 조절한다. [ 줄이기 · ] 키우기 · \\ 초기화 */
+function setCharScale(v){
+  CHAR.userK=Math.max(0.01,Math.min(6,v));
+  try{ localStorage.setItem("room8_charK",String(CHAR.userK)); }catch(e){}
+  applyCharScale();
+}
+function applyCharScale(){
+  var k=CHAR.scale*CHAR.userK;
+  if(meMesh&&meMesh.model){ meMesh.model.scale.setScalar(k); meMesh.model.position.y=CHAR.yOff*CHAR.userK; }
+  Object.keys(avatars).forEach(function(n){
+    var a=avatars[n];
+    if(a&&a.model){ a.model.scale.setScalar(k); a.model.position.y=CHAR.yOff*CHAR.userK; }
+  });
+}
+(function(){
+  try{ var v=parseFloat(localStorage.getItem("room8_charK")); if(v>0) CHAR.userK=v; }catch(e){}
+})();
+
 function measureChar(root){
   var def={scale:1,yOff:0};
   try{
@@ -538,7 +558,7 @@ function measureChar(root){
     if(!(h>0.1&&h<20)) return def;
     var k=CHAR_HEIGHT/h;
     if(!(k>0.05&&k<20)) return def;
-    return {scale:k,yOff:-by*k};
+    return {scale:k,yOff:-by*k,h:h};
   }catch(e){ return def; }
 }
 
@@ -569,7 +589,15 @@ function loadCharacter(){
 
       // 스킨 메시는 바운딩 박스가 의미 없다. 뼈 위치로 잰다.
       var m=measureChar(CHAR.proto);
-      CHAR.scale=m.scale; CHAR.yOff=m.yOff;
+      // 스킨 메시 노드에 큰 스케일이 걸려 있으면 렌더링에서 한 번 더 곱해진다
+      var meshK=1;
+      CHAR.proto.traverse(function(o){
+        if(o.isSkinnedMesh&&o.scale&&o.scale.x>1.5) meshK=Math.max(meshK,o.scale.x);
+      });
+      CHAR.meshK=meshK;
+      CHAR.boneH=m.h;
+      CHAR.scale=m.scale/meshK;
+      CHAR.yOff=m.yOff;
       var hcHip=hipsY(CHAR.proto);
 
       L.load(ANIM_FILE,function(g2){
@@ -612,8 +640,8 @@ function makeSkinnedAvatar(name,slot){
   var col=ROOM_COLORS[slot%8];
   var g=new THREE.Group();
   var model=THREE.SkeletonUtils.clone(CHAR.proto);
-  model.scale.setScalar(CHAR.scale);
-  model.position.y=CHAR.yOff;
+  model.scale.setScalar(CHAR.scale*CHAR.userK);
+  model.position.y=CHAR.yOff*CHAR.userK;
   g.add(model);
 
   // 재질을 하나로 덮어써서 사람마다 색만 다르게
@@ -731,6 +759,9 @@ window.addEventListener("keydown",function(e){
   var k=e.key.toLowerCase();
   if(document.activeElement&&/input|select|textarea/i.test(document.activeElement.tagName)) return;
   if(k==="e"&&!keys.e) doInteract();
+  if(k==="["){ setCharScale(CHAR.userK*0.85); e.preventDefault(); }
+  if(k==="]"){ setCharScale(CHAR.userK*1.18); e.preventDefault(); }
+  if(k==="\\"){ setCharScale(1); e.preventDefault(); }
   if(k==="c"&&!keys.c) setEmote(me.emote===1?0:1);
   if(k==="v"&&!keys.v) setEmote(2);
   if(k==="b"&&!keys.b) setEmote(3);
@@ -1504,6 +1535,13 @@ function renderHUD(){
     } else if(nearestObj()) act="E — 줍기";
   }
   $("hint").textContent=act||hint||"WASD 이동 · Shift 달리기 · Space 점프 · E 줍기 · 좌클릭 펀치/던지기 · C 앉기 · V 인사 · B 춤";
+  var dbg=$("dbg");
+  if(dbg){
+    dbg.textContent="모델 배율 "+(CHAR.scale*CHAR.userK).toFixed(4)+
+      "  (기본 "+CHAR.scale.toFixed(4)+" × 내조절 "+CHAR.userK.toFixed(3)+")"+
+      "  · 뼈높이 "+(CHAR.boneH||0).toFixed(3)+" · 메시배율 "+(CHAR.meshK||1).toFixed(2)+
+      "   [ 줄이기 · ] 키우기 · \\ 초기화";
+  }
 
   $("btnBoard").classList.toggle("hidden",!(PUB.board&&PUB.board.length));
   $("btnGal").classList.toggle("hidden",!(PRIV&&PRIV.recv&&PRIV.recv.length));
