@@ -249,14 +249,14 @@ function privState(p){
     if(to!==undefined&&to!==null&&!H.players[to].dead)
       mis={to:to,toName:H.players[to].name,wordIdx:H.players[to].lock[H.round-1]};
   }
-  return {t:"priv",me:p.idx,role:p.role,mission:mis,
+  return {t:"priv",me:p.idx,role:p.role,mission:mis,round:H.round,
     recv:p.recv,slots:SLOTS,
     sent:!!(H.draws[H.round]&&H.draws[H.round][p.idx])};
 }
 
 function pushAll(){
   var pub=pubState();
-  H.players.forEach(function(p){ send(p,pub); send(p,privState(p)); });
+  H.players.forEach(function(p){ send(p,{t:"sync",pub:pub,priv:privState(p)}); });
 }
 
 /* ---------- 방장 화면 ---------- */
@@ -506,7 +506,8 @@ function resultHTML(R,isHost){
 /* ================================================================
    플레이어
 ================================================================ */
-var P={conn:null,peer:null,me:-1,pub:null,priv:null,name:"",code:"",fake:-1,strokes:[],sentThis:false};
+var P={conn:null,peer:null,me:-1,pub:null,priv:null,name:"",code:"",fake:-1,strokes:[],
+       sentThis:false,wa:"",wb:"",ans:null};
 
 (function(){
   var m=location.search.match(/[?&]r=([A-Za-z0-9]{4})/);
@@ -551,6 +552,7 @@ function joinRoom(){
 function onPlayerMsg(m){
   if(m.t==="deny"){ alert(m.why); location.reload(); return; }
   if(m.t==="welcome"){ P.me=m.idx; return; }
+  if(m.t==="sync"){ P.pub=m.pub; P.priv=m.priv; renderPlayer(); return; }
   if(m.t==="pub"){ P.pub=m; renderPlayer(); return; }
   if(m.t==="priv"){ P.priv=m; renderPlayer(); return; }
 }
@@ -572,10 +574,13 @@ function renderPlayer(){
   if(phaseChanged){ padReady=false; P.strokes=[]; if(ph==="night") P.fake=-1; }
   lastPhase=ph; lastDone=mineDone;
 
-  // 남이 뭘 할 때마다 화면을 다시 그리면 그리던 그림과 선택이 날아간다
+  // 그리던 그림이나 고르던 선택이 날아가지 않게, 꼭 필요할 때만 다시 그린다.
+  // 단 캔버스가 아직 안 떴으면 반드시 그려야 한다.
   if(!phaseChanged){
     if(ph==="vote") return;
-    if((ph==="night"||ph==="final") && !doneChanged) return;
+    if(ph==="night" && padReady && priv && priv.mission && !priv.sent) return;
+    if(ph==="words" && !doneChanged && $("wa")) return;
+    if(ph==="final" && !doneChanged && $("an0")) return;
   }
 
   h+='<div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">'+
@@ -609,7 +614,10 @@ function renderPlayer(){
 
   /* 밤 */
   else if(ph==="night"){
-    if(!priv||!priv.mission){
+    if(!priv||priv.round!==pub.round){
+      h+='<div class="card"><h2>'+pub.round+' 라운드 · 밤</h2>'+
+        '<div class="note">준비 중입니다…</div></div>';
+    } else if(!priv.mission){
       h+='<div class="card"><h2>'+pub.round+' 라운드 · 밤</h2>'+
         '<div class="note r"><b>이번 라운드는 쉽니다.</b> 독방에 있거나 탈락했습니다.</div></div>';
     } else if(priv.sent){
@@ -730,10 +738,13 @@ function wirePlayer(ph){
   });
 
   if(ph==="words"&&$("sendW")){
+    if(P.wa) $("wa").value=P.wa;
+    if(P.wb) $("wb").value=P.wb;
     $("sendW").onclick=function(){
       var a=($("wa").value||"").trim(), b=($("wb").value||"").trim();
       if(!a||!b){ alert("단어 2개를 다 넣어주세요."); return; }
       if(a===b){ alert("서로 다른 단어여야 합니다."); return; }
+      P.wa=a; P.wb=b;
       toHost({t:"words",a:a,b:b});
     };
   }
@@ -770,6 +781,7 @@ function wirePlayer(ph){
   }
 
   if(ph==="final"&&$("sendA")){
+    if(P.ans) for(var q=0;q<SLOTS;q++) if($("an"+q)&&P.ans[q]!==undefined) $("an"+q).value=P.ans[q];
     for(var k=0;k<SLOTS;k++) (function(k){ $("an"+k).onchange=checkDup; })(k);
     checkDup();
     $("sendA").onclick=function(){
@@ -779,6 +791,7 @@ function wirePlayer(ph){
         if(v<0){ alert((k+1)+"번 칸을 고르세요."); return; }
         arr.push(v);
       }
+      P.ans=arr;
       toHost({t:"answer",arr:arr});
     };
   }
