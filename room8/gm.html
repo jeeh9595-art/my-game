@@ -4,646 +4,430 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>탈출 게임 진행자 화면</title>
+<title>8호실 · 진행자 화면</title>
 <style>
-  * { box-sizing:border-box; }
-  body { margin:0; background:#12141a; color:#e6e8ec;
-         font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif; font-size:14px; }
-  .wrap { max-width:1180px; margin:0 auto; padding:22px 20px 80px; }
-  h1 { font-size:20px; letter-spacing:3px; margin:0 0 4px; }
-  .tag { font-size:12px; color:#7f8794; margin-bottom:20px; }
-  h2 { font-size:15px; margin:26px 0 10px; color:#cdd3dc; letter-spacing:1px;
-       border-left:3px solid #4c7dfc; padding-left:9px; }
-  .box { background:#1a1d25; border:1px solid #262b36; border-radius:12px; padding:16px 18px; margin-bottom:14px; }
-  label { font-size:12px; color:#98a0ac; display:block; margin-bottom:5px; }
-  input[type=text], select, textarea {
-    font:inherit; background:#0f1116; color:#e6e8ec; border:1px solid #303743;
-    border-radius:7px; padding:8px 10px; width:100%; }
-  textarea { min-height:150px; resize:vertical; line-height:1.65; font-size:13px; }
-  button { font:inherit; border:none; border-radius:8px; padding:9px 18px;
-           background:#4c7dfc; color:#fff; cursor:pointer; }
-  button:hover { background:#3f6ce0; }
-  button.ghost { background:#333a47; }
-  button.ghost:hover { background:#3d4552; }
-  button.warn { background:#c0453f; }
-  button.sm { padding:5px 11px; font-size:12px; }
-  button:disabled { background:#2a2f3a; color:#606774; cursor:default; }
-  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
-  .row > div { flex:1; min-width:130px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:12px; }
-  .pcard { background:#1a1d25; border:1px solid #262b36; border-radius:11px; padding:13px 14px; }
-  .pname { font-weight:bold; font-size:15px; margin-bottom:2px; }
-  .pmeta { font-size:11.5px; color:#8b93a0; margin-bottom:9px; }
-  .chip { display:inline-block; font-size:11px; padding:2px 8px; border-radius:20px;
-          background:#2a303c; color:#aeb6c2; margin-right:4px; }
-  .chip.tr { background:#5a2b2b; color:#ffb3b3; }
-  .chip.mute { background:#4a3f18; color:#ffd98a; }
-  .lockslot { display:inline-block; padding:4px 9px; border-radius:7px; background:#0f1116;
-              border:1px solid #2b3240; margin:2px 3px 2px 0; font-size:13px; }
-  .stepnote { background:#171c28; border-left:3px solid #ffd75e; padding:11px 14px;
-              border-radius:0 8px 8px 0; font-size:13px; line-height:1.85; color:#d3d9e2; margin-bottom:14px; }
-  .stepnote b { color:#ffd75e; }
-  .turnbar { display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-             background:#1a1d25; border:1px solid #262b36; border-radius:12px; padding:13px 18px; margin-bottom:16px; }
-  .turnbar .big { font-size:19px; font-weight:bold; letter-spacing:2px; }
-  .phase { font-size:12px; padding:4px 12px; border-radius:20px; }
-  .phase.night { background:#22305a; color:#a9c2ff; }
-  .phase.day { background:#5a4a1e; color:#ffe08a; }
-  .hidden { display:none !important; }
-  .muted { color:#7f8794; font-size:12px; line-height:1.8; }
-  table { width:100%; border-collapse:collapse; font-size:13px; }
-  th, td { padding:7px 9px; border-bottom:1px solid #262b36; text-align:left; }
-  th { color:#8b93a0; font-weight:normal; font-size:11.5px; }
-  .ok { color:#6ee7a0; } .bad { color:#ff7b7b; }
-  .copied { color:#6ee7a0; font-size:11px; margin-left:8px; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:#12141a;color:#e6e8ec;
+       font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;font-size:14px;line-height:1.8;}
+  .wrap{max-width:1120px;margin:0 auto;padding:22px 20px 90px;}
+  h1{font-size:20px;letter-spacing:3px;margin:0 0 4px;}
+  .tag{font-size:12px;color:#7f8794;margin-bottom:20px;}
+  h2{font-size:14.5px;margin:26px 0 10px;color:#cdd3dc;letter-spacing:1px;
+     border-left:3px solid #4c7dfc;padding-left:9px;}
+  .box{background:#1a1d25;border:1px solid #262b36;border-radius:12px;padding:16px 18px;margin-bottom:14px;}
+  label{font-size:12px;color:#98a0ac;display:block;margin-bottom:5px;}
+  input[type=text],select,textarea{font:inherit;background:#0f1116;color:#e6e8ec;
+    border:1px solid #303743;border-radius:7px;padding:8px 10px;width:100%;}
+  textarea{min-height:110px;resize:vertical;line-height:1.7;}
+  button{font:inherit;border:none;border-radius:8px;padding:9px 18px;background:#4c7dfc;color:#fff;cursor:pointer;}
+  button:hover{background:#3f6ce0;}
+  button.ghost{background:#333a47;} button.ghost:hover{background:#3d4552;}
+  button.sm{padding:5px 12px;font-size:12.5px;}
+  button.on{background:#45c2b7;color:#08201e;}
+  button:disabled{background:#242b33;color:#5b646d;cursor:default;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+  .row>div{flex:1;min-width:130px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;}
+  .pcard{background:#1a1d25;border:1px solid #262b36;border-radius:11px;padding:13px 14px;}
+  .pname{font-weight:bold;font-size:15px;margin-bottom:8px;}
+  .chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;
+        background:#2a303c;color:#aeb6c2;margin-right:4px;}
+  .chip.tr{background:#5a2b2b;color:#ffb3b3;}
+  .chip.iso{background:#4a3f18;color:#ffd98a;}
+  .chip.dead{background:#3a2320;color:#ff9a90;}
+  .note{background:#171c28;border-left:3px solid #ffd75e;border-radius:0 8px 8px 0;
+        padding:12px 15px;font-size:13.5px;color:#d3d9e2;margin-bottom:14px;line-height:1.9;}
+  .note b{color:#ffd75e;}
+  .note.sig{border-left-color:#45c2b7;} .note.sig b{color:#45c2b7;}
+  .note.bad{border-left-color:#e8695e;} .note.bad b{color:#e8695e;}
+  .turnbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#1a1d25;
+           border:1px solid #262b36;border-radius:12px;padding:13px 18px;margin-bottom:16px;}
+  .turnbar .big{font-size:19px;font-weight:bold;letter-spacing:2px;}
+  .phase{font-size:12px;padding:4px 12px;border-radius:20px;background:#22305a;color:#a9c2ff;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:8px 10px;border-bottom:1px solid #262b36;text-align:left;vertical-align:top;}
+  th{color:#8b93a0;font-weight:normal;font-size:11.5px;background:#1f242c;}
+  tbody tr:last-child td{border-bottom:0;}
+  .tw{overflow-x:auto;border:1px solid #262b36;border-radius:10px;}
+  .ok{color:#6ee7a0;} .bad{color:#ff7b7b;}
+  .muted{color:#7f8794;font-size:12.5px;line-height:1.8;}
+  .copied{color:#6ee7a0;font-size:11px;margin-left:6px;}
+  .hidden{display:none!important;}
+  .wchips{display:flex;flex-wrap:wrap;gap:6px;}
+  .wchip{background:#0f1116;border:1px solid #2b3240;border-radius:7px;padding:5px 10px;font-size:13px;}
+  .wchip small{color:#6f7a86;margin-left:5px;}
+  .themebtns{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<h1>탈출 게임 · 진행자 화면</h1>
-<div class="tag">플레이테스트용 · 디스코드/카톡 DM으로 돌리는 도구</div>
+<h1>8호실 · 진행자 화면</h1>
+<div class="tag">그림 전달 버전 · 방장 한 명만 이 화면을 봅니다</div>
 
-<!-- ================= 설정 ================= -->
-<div id="setup">
-  <h2>1. 설정</h2>
+<!-- ============ 1. 설정 ============ -->
+<div id="s1">
+  <h2>1. 인원과 주제</h2>
   <div class="box">
     <div class="row" style="margin-bottom:14px;">
-      <div style="max-width:150px;">
+      <div style="max-width:130px;">
         <label>인원</label>
-        <select id="cnt">
-          <option>5</option><option>6</option><option selected>7</option><option>8</option>
-        </select>
+        <select id="cnt"><option>5</option><option>6</option><option selected>7</option><option>8</option></select>
       </div>
-      <div style="max-width:170px;">
-        <label>힌트 턴 수</label>
-        <select id="turns"><option>3</option><option selected>4</option><option>5</option></select>
-      </div>
-      <div style="max-width:210px;">
-        <label>배신자 수</label>
-        <select id="trCount">
-          <option value="auto" selected>자동 (5~6명=1, 7~8명=2)</option>
-          <option value="1">1명</option><option value="2">2명</option>
-        </select>
+      <div style="max-width:200px;">
+        <label>배신자</label>
+        <select id="ntr"><option value="auto" selected>자동 (5~6명 1 · 7~8명 2)</option><option value="1">1명</option><option value="2">2명</option></select>
       </div>
     </div>
 
-    <div class="row" style="margin-bottom:14px;">
-      <div>
-        <label>배신자 위조 방식 &nbsp;<span class="muted">— 두 가지를 다 돌려보고 고르세요</span></label>
-        <select id="mode">
-          <option value="any" selected>A안 · 아무 경로나 가로채 위조 (게임당 횟수 제한)</option>
-          <option value="own">B안 · 자기가 보내는 힌트만 위조 (타겟 고정)</option>
-        </select>
-      </div>
-      <div style="max-width:160px;">
-        <label>위조 가능 횟수</label>
-        <select id="forgeMax"><option>1</option><option selected>2</option><option>3</option><option value="99">무제한</option></select>
-      </div>
-    </div>
+    <label>주제 — 그림으로 헷갈리는 것이어야 합니다</label>
+    <div class="themebtns" id="themes"></div>
+    <input type="text" id="theme" placeholder="직접 입력도 가능">
 
-    <div class="row" style="margin-bottom:16px;">
-      <div>
-        <label><input type="checkbox" id="ruleHint" checked style="width:auto; margin-right:6px;">
-        자물쇠 규칙 공개 <span class="muted">(색·모양이 겹치지 않음 → 위조를 눈치챌 단서가 생깁니다)</span></label>
-      </div>
-    </div>
+    <label style="margin-top:14px;">플레이어 이름 (한 줄에 한 명)</label>
+    <textarea id="names"></textarea>
 
-    <label>플레이어 이름 (한 줄에 한 명)</label>
-    <textarea id="names" style="min-height:120px;"></textarea>
+    <div style="margin-top:14px;"><button id="toWords">다음 · 단어 받기</button></div>
+  </div>
+</div>
+
+<!-- ============ 2. 단어 ============ -->
+<div id="s2" class="hidden">
+  <h2>2. 단어 제출</h2>
+  <div class="box">
+    <div class="note sig">
+      전원에게 <b>주제에 맞는 단어 2개씩</b> 받아서 여기에 적으세요. 음성으로 부르게 하면 40초면 끝납니다.<br>
+      <b>2~6글자, 그림으로 그릴 수 있는 것.</b> 겹치면 다시 받으세요.
+    </div>
+    <div id="wordForm"></div>
     <div style="margin-top:14px;">
-      <button id="btnStart">게임 시작</button>
-      <span class="muted" style="margin-left:12px;">시작하면 역할·사슬·자물쇠가 무작위로 배정됩니다</span>
+      <button id="makeGame">게임 만들기</button>
+      <button class="ghost" id="backS1">뒤로</button>
+      <span class="muted" style="margin-left:10px;">역할·자물쇠가 자동 배정됩니다</span>
     </div>
   </div>
 </div>
 
-<!-- ================= 진행 ================= -->
-<div id="play" class="hidden">
-
+<!-- ============ 3. 진행 ============ -->
+<div id="s3" class="hidden">
   <div class="turnbar">
-    <div class="big" id="turnLabel">1턴</div>
-    <div class="phase night" id="phaseLabel">밤 · 힌트 전달</div>
-    <div class="muted" id="modeLabel"></div>
+    <div class="big" id="rdLabel">준비</div>
+    <div class="phase" id="phLabel">링크 배포</div>
+    <div class="muted" id="metaLabel"></div>
     <div style="margin-left:auto;">
-      <button class="ghost sm" id="btnTruth">진행자 진실표 보기</button>
-      <button class="ghost sm" id="btnQuit">처음으로</button>
+      <button class="ghost sm" id="btnTruth">진실표</button>
+      <button class="ghost sm" id="btnReset">처음으로</button>
     </div>
   </div>
 
-  <div id="truth" class="box hidden">
-    <h2 style="margin-top:0;">진행자 전용 · 진실표</h2>
-    <div class="muted" style="margin-bottom:10px;">절대 화면 공유하지 마세요.</div>
-    <div id="truthBody"></div>
-  </div>
+  <div id="truth" class="box hidden"></div>
 
-  <div id="stepNote" class="stepnote"></div>
+  <div id="panel"></div>
 
-  <!-- 밤: 배신자 지시 입력 -->
-  <div id="forgePanel" class="box hidden">
-    <h2 style="margin-top:0;">배신자 지시 입력</h2>
-    <div class="muted" style="margin-bottom:12px;">
-      배신자에게 DM으로 물어보고, 답을 여기에 입력하세요. 위조하지 않으면 그냥 넘어가면 됩니다.
-    </div>
-    <div id="forgeList"></div>
-  </div>
-
-  <!-- DM 카드 -->
-  <div id="dmArea"></div>
-
-  <!-- 낮: 투표 -->
-  <div id="votePanel" class="box hidden">
-    <h2 style="margin-top:0;">낮 투표 결과</h2>
-    <div class="muted" style="margin-bottom:12px;">
-      회의가 끝나면 지목된 사람을 고르세요. 그 사람은 <b>다음 밤에 위조를 쓸 수 없습니다.</b>
-    </div>
-    <div class="row">
-      <div style="max-width:260px;">
-        <select id="voteSel"></select>
-      </div>
-      <div style="max-width:150px;"><button id="btnVote">확정하고 다음 턴</button></div>
-    </div>
-  </div>
-
-  <div style="margin-top:16px;">
-    <button id="btnNext">다음 단계</button>
-  </div>
-
-  <!-- 최종 -->
-  <div id="finalPanel" class="hidden">
-    <h2>최종 · 자물쇠 정답 입력</h2>
-    <div class="box">
-      <div class="muted" style="margin-bottom:14px;">
-        각자 DM으로 받은 힌트를 조합해 답을 말합니다. 들은 대로 입력하세요.
-      </div>
-      <div id="finalList"></div>
-      <div style="margin-top:16px;"><button id="btnJudge">판정</button></div>
-    </div>
-  </div>
-
-  <!-- 결과 -->
-  <div id="resultPanel" class="hidden">
-    <h2>결과</h2>
-    <div class="box" id="resultBody"></div>
-    <h2>복기용 전체 로그</h2>
-    <div class="box">
-      <textarea id="logBox" style="min-height:260px;"></textarea>
-      <div style="margin-top:10px;"><button class="ghost" id="btnCopyLog">로그 복사</button><span id="logCopied" class="copied"></span></div>
-    </div>
-  </div>
-
-</div>
+  <h2>단어판</h2>
+  <div class="box"><div class="wchips" id="board"></div></div>
 </div>
 
+</div>
 <script>
 "use strict";
-function $(id){ return document.getElementById(id); }
+function $(i){return document.getElementById(i);}
+function sh(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=(Math.random()*(i+1))|0,t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function ri(n){return (Math.random()*n)|0;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 
-/* ============ 자물쇠 재료 ============ */
-var COLORS = [
-  { n:"빨강", c:"#ff6b6b" }, { n:"파랑", c:"#4dabf7" },
-  { n:"초록", c:"#69db7c" }, { n:"노랑", c:"#ffd43b" }
-];
-var SHAPES = [
-  { n:"원", s:"●" }, { n:"네모", s:"■" }, { n:"세모", s:"▲" }, { n:"별", s:"★" }
-];
-function shuffle(a){ a = a.slice(); for (var i=a.length-1;i>0;i--){ var j=(Math.random()*(i+1))|0; var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
-function pieceText(p){ return COLORS[p.c].n + " " + SHAPES[p.s].n; }
-function pieceHTML(p){
-  return '<span class="lockslot"><span style="color:'+COLORS[p.c].c+'">'+SHAPES[p.s].s+'</span> '+
-         COLORS[p.c].n+' '+SHAPES[p.s].n+'</span>';
-}
+var THEMES=["동물","음식","가전제품","탈것","직업","스포츠","학용품","과일"];
+var SLOTS=4, ROUNDS=4;
+var G=null;
 
-/* ============ 상태 ============ */
-var G = null;
-
-function makeLock(nSlots, unique){
-  var cs = unique ? shuffle([0,1,2,3]) : null;
-  var ss = unique ? shuffle([0,1,2,3]) : null;
-  var out = [];
-  for (var i=0;i<nSlots;i++){
-    out.push(unique ? { c:cs[i%4], s:ss[i%4] }
-                    : { c:(Math.random()*4)|0, s:(Math.random()*4)|0 });
-  }
-  return out;
-}
-
-$("names").value = "1번\n2번\n3번\n4번\n5번\n6번\n7번";
-$("cnt").onchange = function(){
-  var n = parseInt($("cnt").value,10);
-  var cur = $("names").value.split("\n").filter(function(s){return s.trim();});
-  var out = [];
-  for (var i=0;i<n;i++) out.push(cur[i] || ((i+1)+"번"));
-  $("names").value = out.join("\n");
-};
-
-$("btnStart").onclick = function(){
-  var names = $("names").value.split("\n").map(function(s){return s.trim();}).filter(Boolean);
-  var n = parseInt($("cnt").value,10);
-  if (names.length < n) { alert("이름을 " + n + "개 입력해주세요."); return; }
-  names = names.slice(0,n);
-
-  var turns = parseInt($("turns").value,10);
-  var trOpt = $("trCount").value;
-  var nTr = trOpt === "auto" ? (n >= 7 ? 2 : 1) : parseInt(trOpt,10);
-  var unique = $("ruleHint").checked;
-
-  var order = shuffle(names.map(function(_,i){return i;}));   // 사슬 순서
-  var players = names.map(function(nm){
-    return { name:nm, role:"citizen", helps:-1, helpedBy:-1,
-             lock:makeLock(turns, unique), received:[], sent:[],
-             forgeLeft:0, muted:false };
-  });
-  // 원형 사슬
-  for (var i=0;i<order.length;i++){
-    var a = order[i], b = order[(i+1)%order.length];
-    players[a].helps = b;
-    players[b].helpedBy = a;
-  }
-  // 배신자
-  var tr = shuffle(names.map(function(_,i){return i;})).slice(0,nTr);
-  var forgeMax = $("forgeMax").value === "99" ? 99 : parseInt($("forgeMax").value,10);
-  tr.forEach(function(i){ players[i].role = "traitor"; players[i].forgeLeft = forgeMax; });
-
-  G = {
-    players: players, turns: turns, turn: 1, phase: "night",
-    mode: $("mode").value, unique: unique, nTr: nTr, forgeMax: forgeMax,
-    forgeThisTurn: {}, log: [], votes: [], done: false
+/* ---------- 설정 ---------- */
+(function(){
+  $("themes").innerHTML = THEMES.map(function(t,i){
+    return '<button class="ghost sm" data-t="'+esc(t)+'">'+esc(t)+'</button>';
+  }).join("");
+  var bs=$("themes").querySelectorAll("button");
+  for(var i=0;i<bs.length;i++) bs[i].onclick=function(){
+    for(var j=0;j<bs.length;j++) bs[j].className="ghost sm";
+    this.className="sm on";
+    $("theme").value=this.getAttribute("data-t");
   };
-  G.log.push("=== 설정 ===");
-  G.log.push("인원 " + n + " / 힌트 턴 " + turns + " / 배신자 " + nTr +
-             " / 위조방식 " + (G.mode === "any" ? "A안(아무 경로)" : "B안(자기 경로만)") +
-             " / 위조횟수 " + (forgeMax===99?"무제한":forgeMax) +
-             " / 자물쇠 규칙공개 " + (unique?"O":"X"));
-  players.forEach(function(p,i){
-    G.log.push("  " + p.name + " [" + (p.role==="traitor"?"배신자":"시민") + "] → 돕는 대상: " +
-               players[p.helps].name + " / 자물쇠: " + p.lock.map(pieceText).join(" , "));
+  fillNames();
+  $("cnt").onchange=fillNames;
+})();
+
+function fillNames(){
+  var n=+$("cnt").value;
+  var cur=$("names").value.split("\n").map(function(s){return s.trim();}).filter(Boolean);
+  var out=[];
+  for(var i=0;i<n;i++) out.push(cur[i]||("플레이어"+(i+1)));
+  $("names").value=out.join("\n");
+}
+
+$("toWords").onclick=function(){
+  var n=+$("cnt").value;
+  var names=$("names").value.split("\n").map(function(s){return s.trim();}).filter(Boolean).slice(0,n);
+  if(names.length<n){ alert("이름을 "+n+"개 입력해주세요."); return; }
+  if(!$("theme").value.trim()){ alert("주제를 골라주세요."); return; }
+  var h='<div class="grid">';
+  names.forEach(function(nm,i){
+    h+='<div class="pcard"><div class="pname">'+esc(nm)+'</div>'+
+       '<input type="text" id="w'+i+'a" placeholder="단어 1" style="margin-bottom:7px;">'+
+       '<input type="text" id="w'+i+'b" placeholder="단어 2"></div>';
+  });
+  h+='</div>';
+  $("wordForm").innerHTML=h;
+  $("s1").classList.add("hidden"); $("s2").classList.remove("hidden");
+};
+$("backS1").onclick=function(){ $("s2").classList.add("hidden"); $("s1").classList.remove("hidden"); };
+
+/* ---------- 게임 생성 ---------- */
+$("makeGame").onclick=function(){
+  var n=+$("cnt").value;
+  var names=$("names").value.split("\n").map(function(s){return s.trim();}).filter(Boolean).slice(0,n);
+  var words=[], seen={};
+  for(var i=0;i<n;i++){
+    var a=($("w"+i+"a").value||"").trim(), b=($("w"+i+"b").value||"").trim();
+    if(!a||!b){ alert(names[i]+" 의 단어 2개를 채워주세요."); return; }
+    if(seen[a]||seen[b]||a===b){ alert("겹치는 단어가 있습니다: "+(seen[a]?a:(seen[b]?b:a))); return; }
+    seen[a]=1; seen[b]=1;
+    words.push([a,i]); words.push([b,i]);
+  }
+
+  var nTr = $("ntr").value==="auto" ? (n>=7?2:1) : +$("ntr").value;
+  var tr = sh(names.map(function(_,i){return i;})).slice(0,nTr);
+
+  var ps=names.map(function(nm,i){
+    return {id:i,name:nm,role:tr.indexOf(i)>=0?"traitor":"citizen",
+            lock:null,iso:0,dead:false,answer:null,escaped:false};
   });
 
-  $("setup").classList.add("hidden");
-  $("play").classList.remove("hidden");
-  $("modeLabel").textContent = (G.mode === "any" ? "A안 · 아무 경로 위조" : "B안 · 자기 경로만 위조") +
-                               " · 배신자 " + nTr + "명";
-  render();
+  // 자물쇠: 자기 단어 제외, 같은 제출자 중복 없음
+  ps.forEach(function(p){
+    var owners=sh(names.map(function(_,i){return i;}).filter(function(i){return i!==p.id;})).slice(0,SLOTS);
+    p.lock=sh(owners.map(function(o){
+      var mine=[];
+      words.forEach(function(w,wi){ if(w[1]===o) mine.push(wi); });
+      return mine[ri(mine.length)];
+    }));
+  });
+
+  // 라운드별 담당 (매 라운드 새 배정, 자기 자신 제외)
+  var miss=[];
+  for(var r=0;r<ROUNDS;r++){
+    var map=null;
+    for(var t=0;t<400;t++){
+      var perm=sh(ps.map(function(p){return p.id;})), ok=true;
+      for(var k=0;k<perm.length;k++) if(perm[k]===k){ok=false;break;}
+      if(ok){ map=perm; break; }
+    }
+    if(!map){ map=ps.map(function(p){return (p.id+1)%n; }); }
+    miss.push(map);   // miss[r][보내는사람] = 받는사람
+  }
+
+  G={n:n,theme:$("theme").value.trim(),names:names,words:words,ps:ps,
+     miss:miss,round:0,phase:"deal",log:[]};
+
+  G.log.push("주제: "+G.theme+" / 인원 "+n+" / 배신자 "+nTr);
+  G.log.push("단어판: "+words.map(function(w){return w[0]+"("+names[w[1]]+")";}).join(", "));
+  ps.forEach(function(p){
+    G.log.push("  "+p.name+" ["+(p.role==="traitor"?"배신자":"참가자")+"] 자물쇠: "+
+      p.lock.map(function(wi){return words[wi][0];}).join(" · "));
+  });
+
+  $("s2").classList.add("hidden"); $("s3").classList.remove("hidden");
+  $("metaLabel").textContent = "주제 「"+G.theme+"」 · "+n+"명 · 배신자 "+nTr+"명";
+  renderBoard();
+  showDeal();
 };
 
-$("btnQuit").onclick = function(){
-  if (!confirm("처음 화면으로 돌아갑니다. 진행 중인 판은 사라집니다.")) return;
-  location.reload();
-};
-$("btnTruth").onclick = function(){ $("truth").classList.toggle("hidden"); renderTruth(); };
+$("btnReset").onclick=function(){ if(confirm("처음으로 돌아갑니다.")) location.reload(); };
+$("btnTruth").onclick=function(){ $("truth").classList.toggle("hidden"); renderTruth(); };
 
-/* ============ 렌더 ============ */
+function renderBoard(){
+  $("board").innerHTML = G.words.map(function(w){
+    return '<span class="wchip">'+esc(w[0])+'<small>'+esc(G.names[w[1]])+'</small></span>';
+  }).join("");
+}
+
 function renderTruth(){
-  if ($("truth").classList.contains("hidden")) return;
-  var h = '<table><tr><th>이름</th><th>역할</th><th>돕는 대상</th><th>나를 돕는 사람</th><th>자물쇠 정답</th><th>위조 남음</th></tr>';
-  G.players.forEach(function(p){
-    h += '<tr><td><b>'+p.name+'</b></td>' +
-         '<td>' + (p.role==="traitor" ? '<span class="chip tr">배신자</span>' : '<span class="chip">시민</span>') + '</td>' +
-         '<td>'+G.players[p.helps].name+'</td>' +
-         '<td>'+G.players[p.helpedBy].name+'</td>' +
-         '<td>'+p.lock.map(pieceHTML).join("")+'</td>' +
-         '<td>'+(p.role==="traitor" ? (p.forgeLeft===99?"무제한":p.forgeLeft) : "-")+'</td></tr>';
+  if($("truth").classList.contains("hidden")) return;
+  var h='<h2 style="margin-top:0;">진행자 전용 · 진실표</h2>'+
+        '<div class="muted" style="margin-bottom:10px;">화면 공유 금지.</div><div class="tw"><table>'+
+        '<tr><th>이름</th><th>역할</th><th>자물쇠 정답 (순서대로)</th><th>독방</th></tr>';
+  G.ps.forEach(function(p){
+    h+='<tr><td><b>'+esc(p.name)+'</b></td><td>'+
+       (p.role==="traitor"?'<span class="chip tr">배신자</span>':'<span class="chip">참가자</span>')+'</td><td>'+
+       p.lock.map(function(wi,k){return (k+1)+". "+esc(G.words[wi][0]);}).join("  ·  ")+'</td><td>'+
+       (p.dead?'<span class="chip dead">탈락</span>':(p.iso>0?'<span class="chip iso">'+p.iso+'회</span>':'-'))+
+       '</td></tr>';
   });
-  h += '</table>';
-  $("truthBody").innerHTML = h;
+  h+='</table></div>';
+  $("truth").innerHTML=h;
 }
 
-function slotOf(turn){ return turn - 1; }
+/* ---------- 링크 ---------- */
+function playLink(i){
+  var p=G.ps[i];
+  var data={v:1,t:G.theme,n:G.names,w:G.words,me:i,r:p.role==="traitor"?"t":"c",s:SLOTS,
+            m:G.miss.map(function(map,r){
+              var to=map[i];
+              return [to, G.ps[to].lock[r]];
+            })};
+  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  var base=location.href.split("#")[0].split("?")[0].replace(/[^\/]*$/,"");
+  return base+"play.html#"+b64;
+}
 
-function render(){
+function copyText(txt,tag){
+  var t=document.createElement("textarea");
+  t.value=txt; t.style.position="fixed"; t.style.top="-2000px"; t.style.opacity="0";
+  document.body.appendChild(t); t.focus(); t.select(); t.setSelectionRange(0,999999);
+  var ok=false; try{ ok=document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(t);
+  if($(tag)){ $(tag).textContent = ok?"복사됨":"복사 실패"; setTimeout(function(){ if($(tag)) $(tag).textContent=""; },1600); }
+}
+
+/* ---------- 링크 배포 ---------- */
+function showDeal(){
+  G.phase="deal";
+  $("rdLabel").textContent="준비";
+  $("phLabel").textContent="링크 배포";
+  var h='<div class="note sig"><b>각자에게 링크를 하나씩 보내세요.</b> '+
+    '이 링크 하나에 4라운드 임무가 전부 들어 있습니다. 라운드마다 다시 보낼 필요가 없습니다.<br>'+
+    '링크를 연 사람은 자기 역할, 단어판, 그리고 <b>매 라운드 누구에게 무엇을 그려야 하는지</b>를 봅니다.</div>';
+  h+='<div class="note"><b>그림은 프로그램을 거치지 않습니다.</b> 각자 링크 안 캔버스에 그린 뒤, '+
+    '그림을 <b>받는 사람에게 직접</b> 카톡으로 보내면 됩니다. 방장은 중계할 필요가 없습니다.</div>';
+  h+='<h2>개인 링크</h2><div class="grid">';
+  G.ps.forEach(function(p,i){
+    h+='<div class="pcard"><div class="pname">'+esc(p.name)+
+       (p.role==="traitor"?' <span class="chip tr">배신자</span>':'')+'</div>'+
+       '<div class="muted" style="word-break:break-all;font-size:11px;max-height:52px;overflow:hidden;" id="lt'+i+'"></div>'+
+       '<div style="margin-top:9px;"><button class="sm" id="lk'+i+'">링크 복사</button>'+
+       '<span class="copied" id="lc'+i+'"></span></div></div>';
+  });
+  h+='</div><div style="margin-top:16px;"><button id="startR">1라운드 시작</button></div>';
+  $("panel").innerHTML=h;
+  G.ps.forEach(function(p,i){
+    var url=playLink(i);
+    $("lt"+i).textContent=url;
+    $("lk"+i).onclick=function(){ copyText(url,"lc"+i); };
+  });
+  $("startR").onclick=function(){ G.round=1; showRound(); };
+}
+
+/* ---------- 라운드 ---------- */
+function showRound(){
+  G.phase="round";
+  $("rdLabel").textContent=G.round+" / "+ROUNDS+" 라운드";
+  $("phLabel").textContent="밤 → 낮 → 투표";
   renderTruth();
-  $("turnLabel").textContent = G.done ? "종료" : (G.turn > G.turns ? "최종" : G.turn + "턴");
-  var pl = $("phaseLabel");
-  if (G.done) { pl.className = "phase day"; pl.textContent = "결과"; }
-  else if (G.turn > G.turns) { pl.className = "phase day"; pl.textContent = "정답 제출"; }
-  else if (G.phase === "night") { pl.className = "phase night"; pl.textContent = "밤 · 힌트 전달"; }
-  else { pl.className = "phase day"; pl.textContent = "낮 · 회의"; }
 
-  $("forgePanel").classList.add("hidden");
-  $("votePanel").classList.add("hidden");
-  $("finalPanel").classList.add("hidden");
-  $("resultPanel").classList.add("hidden");
-  $("dmArea").innerHTML = "";
-  $("btnNext").classList.remove("hidden");
+  var alive=G.ps.filter(function(p){return !p.dead;});
+  var h='<div class="note"><b>밤</b> — 각자 자기 링크에서 <b>R'+G.round+'</b>를 펼쳐 그림을 그리고, '+
+    '받는 사람에게 카톡으로 보냅니다. 20초 타이머는 각자 화면에 있습니다.</div>';
+  h+='<div class="note sig"><b>낮</b> — 다 같이 떠듭니다. "나는 ○○에게 △△를 그렸다", "나는 □□로 봤다"를 맞춰보게 하세요.<br>'+
+    '어긋나는 구간이 나오면 그게 단서입니다. 단, <b>못 그려서 그런 건지 일부러 그런 건지는 아무도 모릅니다.</b></div>';
 
-  if (G.done) { $("btnNext").classList.add("hidden"); $("resultPanel").classList.remove("hidden"); return; }
+  h+='<h2>이번 라운드 담당</h2><div class="tw"><table><tr><th>그리는 사람</th><th>받는 사람</th><th>상태</th></tr>';
+  G.ps.forEach(function(p,i){
+    var to=G.miss[G.round-1][i];
+    var iso = p.isoRound===G.round;
+    h+='<tr><td>'+esc(p.name)+'</td><td>'+esc(G.names[to])+'</td><td>'+
+       (p.dead?'<span class="chip dead">탈락 · 제외</span>':
+        iso?'<span class="chip iso">독방 · 이번 라운드 쉼</span>':'<span class="chip">정상</span>')+'</td></tr>';
+  });
+  h+='</table></div>';
 
-  if (G.turn > G.turns) {          // 최종
-    $("stepNote").innerHTML =
-      "<b>마지막 단계.</b> 각자 지금까지 받은 힌트 " + G.turns + "개를 조합해 자기 자물쇠 답을 말합니다.<br>" +
-      "순서대로 물어보고 들은 대로 입력한 뒤 <b>판정</b>을 누르세요.";
-    $("finalPanel").classList.remove("hidden");
-    renderFinal();
-    $("btnNext").classList.add("hidden");
-    return;
-  }
+  h+='<h2>투표</h2><div class="box"><div class="muted" style="margin-bottom:10px;">'+
+    '회의가 끝나면 지목된 사람을 고르세요. 독방에 가면 <b>다음 라운드에 그리지도 받지도 못합니다.</b> 두 번이면 탈락.</div>'+
+    '<div class="row"><div style="max-width:240px;"><select id="vsel"><option value="-1">지목 없음</option>';
+  alive.forEach(function(p){ h+='<option value="'+p.id+'">'+esc(p.name)+'</option>'; });
+  h+='</select></div><div style="max-width:200px;"><button id="btnVote">확정하고 '+
+     (G.round>=ROUNDS?'최종으로':'다음 라운드')+'</button></div></div></div>';
 
-  if (G.phase === "night") {
-    if (G.turn === 1) {
-      $("stepNote").innerHTML =
-        "<b>1턴 밤입니다.</b> 먼저 아래 DM을 전원에게 보내세요. 각자 자기 역할과 <b>도와야 할 사람</b>을 알게 됩니다.<br>" +
-        "배신자에게는 위조 여부를 따로 물어보고, 답을 <b>배신자 지시 입력</b>란에 넣은 뒤 DM을 생성하세요.";
+  $("panel").innerHTML=h;
+  $("btnVote").onclick=function(){
+    var v=+$("vsel").value;
+    G.log.push("--- "+G.round+"라운드 투표: "+(v<0?"지목 없음":G.ps[v].name)+" ---");
+    if(v>=0){
+      var t=G.ps[v]; t.iso++; t.isoRound=G.round+1;
+      if(t.iso>=2){ t.dead=true; alert(t.name+" 두 번째 지목 — 탈락합니다. 탈출 실패로 집계됩니다."); }
+      else alert(t.name+" 독방행. 다음 라운드에 그리지도 받지도 못합니다.");
+    }
+    if(G.round>=ROUNDS) showFinal();
+    else { G.round++; showRound(); }
+  };
+}
+
+/* ---------- 최종 ---------- */
+function showFinal(){
+  G.phase="final";
+  $("rdLabel").textContent="최종";
+  $("phLabel").textContent="자물쇠 개방";
+  var h='<div class="note"><b>각자 자기 자물쇠 단어 네 개를 순서대로 말하게 하세요.</b> 들은 대로 입력하면 됩니다. '+
+    '(각자 화면 아래쪽에 자기가 적어둔 추측이 있습니다.)</div>';
+  h+='<div class="grid">';
+  G.ps.forEach(function(p,i){
+    h+='<div class="pcard"><div class="pname">'+esc(p.name)+
+       (p.dead?' <span class="chip dead">탈락</span>':'')+'</div>';
+    if(!p.dead){
+      for(var k=0;k<SLOTS;k++){
+        h+='<div style="margin-bottom:6px;"><label>'+(k+1)+'번</label>'+
+           '<select id="a'+i+'_'+k+'">'+G.words.map(function(w,wi){
+             return '<option value="'+wi+'">'+esc(w[0])+' ('+esc(G.names[w[1]])+')</option>';
+           }).join("")+'</select></div>';
+      }
     } else {
-      $("stepNote").innerHTML =
-        "<b>" + G.turn + "턴 밤입니다.</b> 배신자에게 이번 턴 위조 여부를 DM으로 물어보고 아래에 입력하세요.<br>" +
-        "입력이 끝나면 각자에게 DM을 보냅니다.";
+      h+='<div class="muted">탈락 — 입력하지 않습니다.</div>';
     }
-    $("forgePanel").classList.remove("hidden");
-    renderForge();
-    renderDMs();
-    $("btnNext").textContent = "밤 종료 → 낮으로";
-  } else {
-    $("stepNote").innerHTML =
-      "<b>" + G.turn + "턴 낮입니다.</b> 전원 음성 채팅으로 모입니다.<br>" +
-      "「내가 <b>보낸</b> 힌트」와 「내가 <b>받은</b> 힌트」를 서로 대조하게 하세요. " +
-      "둘이 어긋나는 지점이 나오면 그 구간에서 위조가 일어난 것입니다.<br>" +
-      "회의가 끝나면 <b>한 명을 지목</b>합니다. 지목된 사람은 다음 밤에 위조를 쓸 수 없습니다.";
-    $("votePanel").classList.remove("hidden");
-    var sel = $("voteSel");
-    sel.innerHTML = '<option value="-1">지목 없음 (합의 실패)</option>';
-    G.players.forEach(function(p,i){
-      sel.innerHTML += '<option value="'+i+'">'+p.name+'</option>';
-    });
-    $("btnNext").classList.add("hidden");
-  }
+    h+='</div>';
+  });
+  h+='</div><div style="margin-top:16px;"><button id="btnJudge">판정</button></div>';
+  $("panel").innerHTML=h;
+  $("btnJudge").onclick=judge;
 }
 
-function renderForge(){
-  var box = $("forgeList");
-  box.innerHTML = "";
-  var traitors = G.players.map(function(p,i){return {p:p,i:i};}).filter(function(o){return o.p.role==="traitor";});
-  traitors.forEach(function(o){
-    var p = o.p, idx = o.i;
-    var div = document.createElement("div");
-    div.style.cssText = "margin-bottom:14px; padding:12px 14px; background:#0f1116; border:1px solid #2b3240; border-radius:10px;";
-    var canForge = !p.muted && p.forgeLeft > 0;
-    var head = '<div style="margin-bottom:9px;"><b>' + p.name + '</b> <span class="chip tr">배신자</span> ' +
-               (p.muted ? '<span class="chip mute">지목당함 · 이번 밤 위조 불가</span>' : '') +
-               '<span class="muted" style="margin-left:8px;">위조 남음 ' +
-               (p.forgeLeft===99?"무제한":p.forgeLeft) + '회</span></div>';
-    if (!canForge) {
-      div.innerHTML = head + '<div class="muted">이번 턴에는 위조할 수 없습니다.</div>';
-      box.appendChild(div);
-      return;
-    }
-    var opts = '<option value="-1">위조 안 함</option>';
-    G.players.forEach(function(t,ti){
-      if (G.mode === "own") { if (ti !== p.helps) return; }
-      else { if (ti === idx) return; }
-      opts += '<option value="'+ti+'">'+t.name+' 에게 가는 힌트를 위조</option>';
-    });
-    var cur = G.forgeThisTurn[idx] || null;
-    div.innerHTML = head +
-      '<div class="row">' +
-        '<div><label>대상</label><select id="ftg'+idx+'">'+opts+'</select></div>' +
-        '<div style="max-width:150px;"><label>바꿀 색</label><select id="fc'+idx+'">' +
-          COLORS.map(function(c,ci){return '<option value="'+ci+'">'+c.n+'</option>';}).join("") + '</select></div>' +
-        '<div style="max-width:150px;"><label>바꿀 모양</label><select id="fs'+idx+'">' +
-          SHAPES.map(function(s,si){return '<option value="'+si+'">'+s.n+'</option>';}).join("") + '</select></div>' +
-        '<div style="max-width:130px;"><button class="sm" id="fb'+idx+'">적용</button></div>' +
-      '</div>' +
-      '<div class="muted" id="fst'+idx+'" style="margin-top:8px;">' +
-        (cur ? '적용됨 → ' + G.players[cur.target].name + ' 에게 ' + pieceText(cur.piece) + ' 로 위조'
-             : '아직 적용 안 됨') + '</div>';
-    box.appendChild(div);
-    $("fb"+idx).onclick = function(){
-      var tg = parseInt($("ftg"+idx).value,10);
-      if (tg < 0) { delete G.forgeThisTurn[idx]; $("fst"+idx).textContent = "위조 안 함"; renderDMs(); return; }
-      G.forgeThisTurn[idx] = { target: tg,
-        piece: { c: parseInt($("fc"+idx).value,10), s: parseInt($("fs"+idx).value,10) } };
-      $("fst"+idx).textContent = "적용됨 → " + G.players[tg].name + " 에게 " +
-        pieceText(G.forgeThisTurn[idx].piece) + " 로 위조";
-      renderDMs();
-    };
+function judge(){
+  var need = G.n>=7?3:2;
+  G.log.push("--- 최종 판정 ---");
+  G.ps.forEach(function(p,i){
+    if(p.dead){ p.escaped=false; p.answer=null; return; }
+    var ans=[];
+    for(var k=0;k<SLOTS;k++) ans.push(+$("a"+i+"_"+k).value);
+    p.answer=ans;
+    p.escaped=ans.every(function(wi,k){ return wi===p.lock[k]; });
+    G.log.push("  "+p.name+" 제출: "+ans.map(function(wi){return G.words[wi][0];}).join(" · ")+
+      " → "+(p.escaped?"탈출":"실패 (정답 "+p.lock.map(function(wi){return G.words[wi][0];}).join(" · ")+")"));
   });
-  if (!traitors.length) box.innerHTML = '<div class="muted">배신자가 없습니다.</div>';
+  var failed=G.ps.filter(function(p){return !p.escaped;});
+  var win = failed.length>=need;
+  G.log.push("  실패 "+failed.length+"명 → "+(win?"배신자 승리":"참가자 승리"));
+  G.log.push("  배신자: "+G.ps.filter(function(p){return p.role==="traitor";}).map(function(p){return p.name;}).join(", "));
+
+  var h='<div class="box"><div style="font-size:24px;font-weight:700;letter-spacing:3px;margin-bottom:8px;color:'+
+    (win?"#ff7b7b":"#6ee7a0")+'">'+(win?"배신자 승리":"참가자 승리")+'</div>'+
+    '<div class="muted" style="margin-bottom:14px;">탈출 실패 '+failed.length+'명 (배신자 승리 조건 '+need+'명 이상)</div>'+
+    '<div class="tw"><table><tr><th>이름</th><th>역할</th><th>결과</th><th>제출</th><th>정답</th><th>틀린 칸</th></tr>';
+  G.ps.forEach(function(p){
+    var wrong = p.answer ? p.answer.map(function(wi,k){return wi===p.lock[k]?null:(k+1)+"번";}).filter(Boolean).join(", ") : "-";
+    h+='<tr><td><b>'+esc(p.name)+'</b></td>'+
+      '<td>'+(p.role==="traitor"?'<span class="chip tr">배신자</span>':'<span class="chip">참가자</span>')+'</td>'+
+      '<td class="'+(p.escaped?"ok":"bad")+'">'+(p.escaped?"탈출":(p.dead?"탈락":"실패"))+'</td>'+
+      '<td>'+(p.answer?p.answer.map(function(wi){return esc(G.words[wi][0]);}).join(" · "):'<span class="muted">-</span>')+'</td>'+
+      '<td>'+p.lock.map(function(wi){return esc(G.words[wi][0]);}).join(" · ")+'</td>'+
+      '<td class="bad">'+(wrong||"-")+'</td></tr>';
+  });
+  h+='</table></div></div>';
+  h+='<h2>복기용 로그</h2><div class="box"><textarea id="logBox" style="min-height:230px;"></textarea>'+
+     '<div style="margin-top:10px;"><button class="ghost" id="cpLog">로그 복사</button>'+
+     '<span class="copied" id="lcx"></span>'+
+     '<button class="ghost" style="margin-left:8px;" onclick="location.reload()">새 게임</button></div></div>';
+  $("panel").innerHTML=h;
+  $("logBox").value=G.log.join("\n");
+  $("cpLog").onclick=function(){ copyText($("logBox").value,"lcx"); };
+  $("phLabel").textContent="결과";
+  renderTruth();
 }
-
-/* 이번 턴 각자가 보낼/받을 힌트 계산 */
-function computeTurn(){
-  var slot = slotOf(G.turn);
-  var out = [];   // per player: {trueSend, gotPiece, forgedBy}
-  G.players.forEach(function(p,i){
-    var tgt = G.players[p.helps];
-    out.push({ sendTo: p.helps, truePiece: tgt.lock[slot], slot: slot });
-  });
-  // 수신 계산
-  var recv = G.players.map(function(){ return null; });
-  out.forEach(function(o, i){
-    recv[o.sendTo] = { piece: o.truePiece, slot: o.slot, from: i, forged: false };
-  });
-  Object.keys(G.forgeThisTurn).forEach(function(k){
-    var f = G.forgeThisTurn[k];
-    if (recv[f.target]) { recv[f.target].piece = f.piece; recv[f.target].forged = true; recv[f.target].by = parseInt(k,10); }
-  });
-  return { send: out, recv: recv };
-}
-
-function dmText(i){
-  var p = G.players[i], t = computeTurn();
-  var lines = [];
-  lines.push("【 탈출 게임 · " + G.turn + "턴 밤 】");
-  lines.push("당신: " + p.name + (p.role === "traitor" ? "  ※ 당신은 배신자입니다" : ""));
-  if (G.turn === 1) {
-    lines.push("당신이 도와야 할 사람: " + G.players[p.helps].name);
-    lines.push("당신을 돕는 사람: " + G.players[p.helpedBy].name);
-    if (G.unique) lines.push("※ 모든 자물쇠는 색 4가지, 모양 4가지가 겹치지 않게 되어 있습니다.");
-    if (p.role === "traitor") {
-      lines.push("");
-      lines.push("[배신자 안내]");
-      lines.push("- 낮에는 정체를 숨기고 회의에 참여하세요.");
-      lines.push("- 밤마다 진행자에게 '위조할지 / 누구에게 / 무엇으로' 를 DM으로 알리면 됩니다.");
-      lines.push("- 위조 가능 횟수: " + (G.forgeMax === 99 ? "무제한" : G.forgeMax + "회"));
-      lines.push("- 목표: 마지막에 탈출하지 못하는 사람을 2명 이상 만드는 것.");
-    }
-    lines.push("");
-  }
-  var s = t.send[i];
-  lines.push("▶ 이번 턴에 " + G.players[s.sendTo].name + " 에게 전달되는 힌트");
-  lines.push("   " + G.players[s.sendTo].name + " 의 자물쇠 " + (s.slot + 1) + "번 칸 = " + pieceText(s.truePiece));
-  lines.push("   (낮에 이 내용을 그대로 말할 수 있습니다)");
-  lines.push("");
-  var r = t.recv[i];
-  lines.push("▶ 당신이 받은 힌트");
-  p.received.forEach(function(rr){
-    lines.push("   " + (rr.slot + 1) + "번 칸 = " + pieceText(rr.piece) + "   (" + (rr.turn) + "턴)");
-  });
-  if (r) lines.push("   " + (r.slot + 1) + "번 칸 = " + pieceText(r.piece) + "   (" + G.turn + "턴 · 신규)");
-  lines.push("");
-  lines.push("전체 " + G.turns + "턴 동안 힌트를 모아 마지막에 자물쇠 " + G.turns + "칸을 맞히면 탈출합니다.");
-  return lines.join("\n");
-}
-
-function copyText(txt, tagId){
-  var tmp = document.createElement("textarea");
-  tmp.value = txt;
-  tmp.style.position = "fixed"; tmp.style.top = "-2000px"; tmp.style.opacity = "0";
-  document.body.appendChild(tmp);
-  tmp.focus(); tmp.select(); tmp.setSelectionRange(0, 999999);
-  var ok = false;
-  try { ok = document.execCommand("copy"); } catch(e){}
-  document.body.removeChild(tmp);
-  $(tagId).textContent = ok ? "복사됨" : "복사 실패";
-  setTimeout(function(){ $(tagId).textContent = ""; }, 1600);
-}
-function cardLink(txt){
-  var b64 = btoa(unescape(encodeURIComponent(txt)));
-  var base = location.href.split("#")[0].split("?")[0].replace(/[^\/]*$/, "");
-  return base + "card.html#" + b64;
-}
-function renderDMs(){
-  var area = $("dmArea");
-  area.innerHTML = '<h2>각자에게 보낼 DM</h2>' +
-    '<div class="muted" style="margin:-4px 0 12px;">' +
-    '「개인 링크 복사」를 누르면 본문이 담긴 주소가 복사됩니다. ' +
-    '카카오톡이나 디스코드로 링크만 보내면 각자 폰에서 자기 정보를 볼 수 있습니다.' +
-    '</div><div class="grid" id="dmGrid"></div>';
-  var grid = $("dmGrid");
-  G.players.forEach(function(p,i){
-    var d = document.createElement("div");
-    d.className = "pcard";
-    d.innerHTML =
-      '<div class="pname">' + p.name + '</div>' +
-      '<div class="pmeta">' +
-        (p.role==="traitor" ? '<span class="chip tr">배신자</span>' : '<span class="chip">시민</span>') +
-        (p.muted ? '<span class="chip mute">지목됨</span>' : '') +
-        ' → ' + G.players[p.helps].name + ' 담당' +
-      '</div>' +
-      '<textarea id="dm'+i+'" style="min-height:190px;"></textarea>' +
-      '<div style="margin-top:8px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">' +
-      '<button class="ghost sm" id="cp'+i+'">글 복사</button>' +
-      '<button class="sm" id="lk'+i+'">개인 링크 복사</button>' +
-      '<span class="copied" id="cpd'+i+'"></span></div>';
-    grid.appendChild(d);
-    $("dm"+i).value = dmText(i);
-    $("cp"+i).onclick = function(){ copyText($("dm"+i).value, "cpd"+i); };
-    $("lk"+i).onclick = function(){ copyText(cardLink($("dm"+i).value), "cpd"+i); };
-  });
-}
-
-/* ============ 진행 ============ */
-$("btnNext").onclick = function(){
-  if (G.phase !== "night") return;
-  // 밤 확정: 수신 기록 + 로그
-  var t = computeTurn();
-  G.log.push("");
-  G.log.push("=== " + G.turn + "턴 밤 ===");
-  G.players.forEach(function(p,i){
-    var s = t.send[i];
-    G.log.push("  " + p.name + " → " + G.players[s.sendTo].name +
-               " : " + (s.slot+1) + "번 칸 " + pieceText(s.truePiece));
-  });
-  G.players.forEach(function(p,i){
-    var r = t.recv[i];
-    if (!r) return;
-    p.received.push({ slot: r.slot, piece: r.piece, turn: G.turn, forged: r.forged, from: r.from });
-    if (r.forged)
-      G.log.push("  ★ 위조: " + G.players[r.by].name + " 이(가) " + p.name +
-                 " 에게 가는 " + (r.slot+1) + "번 칸을 " + pieceText(r.piece) + " 로 바꿈");
-  });
-  Object.keys(G.forgeThisTurn).forEach(function(k){
-    var p = G.players[parseInt(k,10)];
-    if (p.forgeLeft !== 99) p.forgeLeft--;
-  });
-  G.forgeThisTurn = {};
-  G.players.forEach(function(p){ p.muted = false; });
-  G.phase = "day";
-  render();
-};
-
-$("btnVote").onclick = function(){
-  var v = parseInt($("voteSel").value,10);
-  G.votes.push({ turn: G.turn, target: v });
-  G.log.push("  낮 투표: " + (v < 0 ? "지목 없음" : G.players[v].name + " 지목 (다음 밤 위조 불가)"));
-  if (v >= 0) G.players[v].muted = true;
-  G.turn++;
-  G.phase = "night";
-  render();
-};
-
-function renderFinal(){
-  var box = $("finalList");
-  box.innerHTML = "";
-  G.players.forEach(function(p,i){
-    var d = document.createElement("div");
-    d.style.cssText = "margin-bottom:14px; padding:12px 14px; background:#0f1116; border:1px solid #2b3240; border-radius:10px;";
-    var sel = "";
-    for (var k = 0; k < G.turns; k++) {
-      sel += '<div style="max-width:170px;"><label>' + (k+1) + '번 칸</label>' +
-             '<select id="ac'+i+'_'+k+'">' +
-             COLORS.map(function(c,ci){return '<option value="'+ci+'">'+c.n+'</option>';}).join("") +
-             '</select>' +
-             '<select id="as'+i+'_'+k+'" style="margin-top:5px;">' +
-             SHAPES.map(function(s,si){return '<option value="'+si+'">'+s.n+'</option>';}).join("") +
-             '</select></div>';
-    }
-    d.innerHTML = '<div class="pname" style="margin-bottom:8px;">' + p.name + '</div>' +
-                  '<div class="muted" style="margin-bottom:9px;">받은 힌트: ' +
-                  p.received.map(function(r){ return (r.slot+1)+"번=" + pieceText(r.piece); }).join(" / ") +
-                  '</div><div class="row">' + sel +
-                  '<div style="max-width:150px;"><button class="ghost sm" id="fillbtn'+i+'">받은 대로 채우기</button></div></div>';
-    box.appendChild(d);
-    $("fillbtn"+i).onclick = function(){
-      p.received.forEach(function(r){
-        var cs = $("ac"+i+"_"+r.slot), ss = $("as"+i+"_"+r.slot);
-        if (cs) cs.value = r.piece.c;
-        if (ss) ss.value = r.piece.s;
-      });
-    };
-  });
-}
-
-$("btnJudge").onclick = function(){
-  var escaped = [], failed = [];
-  G.log.push("");
-  G.log.push("=== 최종 판정 ===");
-  G.players.forEach(function(p,i){
-    var ok = true, ans = [];
-    for (var k = 0; k < G.turns; k++) {
-      var c = parseInt($("ac"+i+"_"+k).value,10), s = parseInt($("as"+i+"_"+k).value,10);
-      ans.push({ c:c, s:s });
-      if (c !== p.lock[k].c || s !== p.lock[k].s) ok = false;
-    }
-    p.answer = ans; p.escaped = ok;
-    (ok ? escaped : failed).push(p.name);
-    G.log.push("  " + p.name + " : " + ans.map(pieceText).join(" , ") +
-               " → " + (ok ? "탈출 성공" : "실패 (정답 " + p.lock.map(pieceText).join(" , ") + ")"));
-  });
-
-  var traitorWin = failed.length >= 2;
-  G.log.push("  탈출 " + escaped.length + "명 / 실패 " + failed.length + "명");
-  G.log.push("  배신자: " + G.players.filter(function(p){return p.role==="traitor";}).map(function(p){return p.name;}).join(", "));
-  G.log.push("  승리: " + (traitorWin ? "배신자" : "시민"));
-
-  var h = '<div style="font-size:22px; font-weight:bold; letter-spacing:3px; margin-bottom:14px; color:' +
-          (traitorWin ? "#ff7b7b" : "#6ee7a0") + ';">' +
-          (traitorWin ? "배신자 승리" : "시민 승리") + '</div>';
-  h += '<div class="muted" style="margin-bottom:14px;">탈출 실패 2명 이상이면 배신자 승리입니다. ' +
-       '(실패 ' + failed.length + '명)</div>';
-  h += '<table><tr><th>이름</th><th>역할</th><th>결과</th><th>제출한 답</th><th>실제 정답</th><th>위조당한 칸</th></tr>';
-  G.players.forEach(function(p){
-    var forged = p.received.filter(function(r){return r.forged;}).map(function(r){return (r.slot+1)+"번";}).join(", ");
-    h += '<tr><td><b>'+p.name+'</b></td>' +
-         '<td>'+(p.role==="traitor"?'<span class="chip tr">배신자</span>':'<span class="chip">시민</span>')+'</td>' +
-         '<td class="'+(p.escaped?"ok":"bad")+'">'+(p.escaped?"탈출":"실패")+'</td>' +
-         '<td>'+p.answer.map(pieceHTML).join("")+'</td>' +
-         '<td>'+p.lock.map(pieceHTML).join("")+'</td>' +
-         '<td class="bad">'+(forged||"-")+'</td></tr>';
-  });
-  h += '</table>';
-  $("resultBody").innerHTML = h;
-  $("logBox").value = G.log.join("\n");
-  G.done = true;
-  render();
-};
-
-$("btnCopyLog").onclick = function(){
-  var ta = $("logBox");
-  ta.select(); ta.setSelectionRange(0, 99999);
-  try { document.execCommand("copy"); $("logCopied").textContent = "복사됨"; } catch(e){}
-  setTimeout(function(){ $("logCopied").textContent = ""; }, 1500);
-};
 </script>
 </body>
 </html>

@@ -34,19 +34,17 @@
     mix-blend-mode:multiply;
   }
   a{text-decoration:none; color:inherit}
-  .wrap{max-width:860px; margin:0 auto; padding:0 22px 90px}
+  .wrap{max-width:880px; margin:0 auto; padding:0 22px 90px}
 
-  header{padding:44px 0 30px; border-bottom:3px solid var(--line); margin-bottom:34px}
+  header{padding:44px 0 30px; border-bottom:3px solid var(--line); margin-bottom:32px}
   .kicker{font-family:'Press Start 2P',monospace; font-size:9px; color:var(--magenta); letter-spacing:2px}
   h1{font-size:44px; color:#fff; margin:14px 0 6px; letter-spacing:2px}
   .sub{color:var(--dim); font-size:15px}
   .tagline{margin-top:18px; font-size:16px; color:#cfd0f5; line-height:1.9}
   .tagline b{color:var(--yellow)}
 
-  .notice{
-    border:3px solid var(--line); background:var(--panel); padding:18px 20px; margin-bottom:30px;
-    font-size:14.5px; color:#cfd0f5;
-  }
+  .notice{border:3px solid var(--line); background:var(--panel); padding:18px 20px; margin-bottom:28px;
+          font-size:14.5px; color:#cfd0f5}
   .notice .t{font-family:'Press Start 2P',monospace; font-size:9px; color:var(--yellow); letter-spacing:2px; margin-bottom:10px}
 
   h2{font-size:22px; color:#fff; margin:34px 0 14px; display:flex; align-items:center; gap:10px}
@@ -58,8 +56,8 @@
   .card:hover{transform:translateY(-4px); border-color:var(--cyan); box-shadow:0 0 20px rgba(40,230,255,.35)}
   .card .role{font-family:'Press Start 2P',monospace; font-size:8px; letter-spacing:1.5px; margin-bottom:12px}
   .card.host .role{color:var(--magenta)}
-  .card.solo .role{color:var(--green)}
   .card.doc .role{color:var(--yellow)}
+  .card.old .role{color:var(--dim)}
   .card h3{font-size:21px; color:#fff; margin-bottom:8px}
   .card p{font-size:14px; color:var(--dim); line-height:1.7; flex:1; margin-bottom:16px}
   .go{display:block; text-align:center; font-family:'Press Start 2P',monospace; font-size:10px;
@@ -67,17 +65,20 @@
   .go:hover{transform:translate(2px,2px); box-shadow:2px 2px 0 #0c5f70}
   .card.host .go{background:var(--magenta); box-shadow:4px 4px 0 #7a1256; color:#fff}
   .card.doc .go{background:var(--yellow); box-shadow:4px 4px 0 #7a6a0c}
+  .card.old .go{background:#2b2b4a; box-shadow:4px 4px 0 #16162c; color:var(--dim)}
 
   ol.steps{list-style:none; counter-reset:s; margin-top:10px}
   ol.steps li{counter-increment:s; position:relative; padding:12px 0 12px 46px;
-              border-bottom:1px solid var(--line); font-size:14.5px; color:#cfd0f5; line-height:1.8}
+              border-bottom:1px solid var(--line); font-size:14.5px; color:#cfd0f5; line-height:1.85}
   ol.steps li:last-child{border-bottom:0}
-  ol.steps li::before{
-    content:counter(s); position:absolute; left:0; top:12px;
+  ol.steps li::before{content:counter(s); position:absolute; left:0; top:12px;
     font-family:'Press Start 2P',monospace; font-size:10px; color:#06060e;
-    background:var(--cyan); width:28px; height:28px; display:grid; place-items:center;
-  }
+    background:var(--cyan); width:28px; height:28px; display:grid; place-items:center}
   ol.steps b{color:var(--yellow)}
+
+  .warnbox{border:3px solid #5a1a3a; background:#1e0d1c; padding:16px 20px; margin-top:18px;
+           font-size:14px; color:#f0c8e0}
+  .warnbox b{color:var(--magenta)}
 
   .back{display:inline-block; margin-top:36px; font-size:13px; color:var(--dim); border-bottom:1px solid var(--line)}
   .back:hover{color:var(--cyan)}
@@ -89,21 +90,21 @@
 <div class="wrap">
 
   <header>
-    <div class="kicker">PLAYTEST BUILD · NOT A GAME YET</div>
+    <div class="kicker">PLAYTEST BUILD v0.2 · DRAWING</div>
     <h1>8호실</h1>
     <div class="sub">5~8인 소셜 추리 · 규칙 검증용 테스트 페이지</div>
     <p class="tagline">
       각자 다른 자물쇠에 갇힌 채, 서로에게 힌트를 하나씩 넘겨 탈출한다.<br>
-      단 <b>내 자물쇠의 힌트는 내가 볼 수 없다.</b> 옆 사람이 대신 봐서 넘겨줘야 한다.<br>
-      그리고 그 전달 경로 어딘가에, 내용을 몰래 바꿔치기하는 <b>배신자</b>가 있다.
+      단 힌트는 말이 아니라 <b>손으로 그린 그림</b>이다.<br>
+      그리고 그중 하나둘은, 일부러 <b>다른 걸 그려서 보내는 배신자</b>다.
     </p>
   </header>
 
   <div class="notice">
     <div class="t">READ ME</div>
     아직 게임이 아니라 <b style="color:#fff">규칙이 재밌는지 확인하는 도구</b>입니다.
-    실제 게임은 3D로 만들 예정이고, 지금은 그 전에 규칙만 사람으로 돌려보는 단계입니다.
-    한 판에 15~20분, 음성 채팅(디스코드·카카오톡 통화)이 필요합니다.
+    실제 게임은 3D로 만들 예정이고, 지금은 그 전에 규칙만 사람으로 돌려보는 단계입니다.<br>
+    한 판 15~20분, <b style="color:#fff">음성 채팅 + 카카오톡(또는 디스코드)</b>이 필요합니다.
   </div>
 
   <h2>어디로 들어가면 되나</h2>
@@ -111,46 +112,55 @@
     <div class="card host">
       <div class="role">HOST · 방장 한 명만</div>
       <h3>진행자 화면</h3>
-      <p>역할·자물쇠를 자동으로 배정하고, 각자에게 보낼 개인 링크를 만들어 줍니다. 방장 한 명만 열면 됩니다.</p>
+      <p>주제와 단어를 받아 자물쇠를 만들고, 각자에게 보낼 개인 링크를 뽑아 줍니다. 방장 한 명만 열면 됩니다.</p>
       <a class="go" href="gm.html">▶ 진행자 시작</a>
-    </div>
-    <div class="card solo">
-      <div class="role">SOLO · 규칙 익히기</div>
-      <h3>혼자 연습</h3>
-      <p>봇 상대로 한 판 돌려보며 규칙을 익힙니다. 모이기 전에 각자 한 번씩 해보면 진행이 훨씬 매끄럽습니다.</p>
-      <a class="go" href="solo.html">▶ 혼자 해보기</a>
     </div>
     <div class="card doc">
       <div class="role">DOC · 규칙 전문</div>
-      <h3>규칙 요약</h3>
-      <p>자물쇠, 힌트 사슬, 배신자 능력, 투표와 독방, 승패 조건. 헷갈릴 때 여기를 보세요.</p>
+      <h3>규칙 보기</h3>
+      <p>자물쇠가 어떻게 만들어지는지, 배신자가 뭘 하는지, 어떻게 잡는지. 헷갈릴 때 여기를 보세요.</p>
       <a class="go" href="#rules">▶ 규칙 보기</a>
+    </div>
+    <div class="card old">
+      <div class="role">ARCHIVE · 구버전</div>
+      <h3>도형 버전</h3>
+      <p>그림 대신 색·모양을 주고받던 이전 버전입니다. 혼자 봇 상대로 연습할 수 있어 규칙 감을 잡기엔 좋습니다.</p>
+      <a class="go" href="solo-shapes.html">▶ 혼자 해보기</a>
     </div>
   </div>
 
   <h2>진행 순서</h2>
   <ol class="steps">
     <li>전원 <b>음성 채팅</b>에 모입니다. 방장은 <b>진행자 화면</b>을 엽니다.</li>
-    <li>방장이 인원과 이름을 넣고 시작하면 역할과 자물쇠가 배정됩니다.</li>
-    <li><b>밤</b> — 방장이 각자에게 <b>개인 링크</b>를 보냅니다. 링크를 열면 자기 역할과 이번 턴에 전달되는 힌트가 보입니다. 배신자는 방장에게 위조 여부를 몰래 알립니다.</li>
-    <li><b>낮</b> — 다 같이 떠듭니다. "나는 이걸 보냈다 / 나는 이걸 받았다"를 대조해서 <b>어긋난 구간</b>을 찾습니다.</li>
-    <li><b>투표</b> — 한 명을 지목해 독방으로 보냅니다. 지목된 사람은 다음 밤에 힌트를 주고받지 못합니다.</li>
-    <li>이걸 <b>4번</b> 반복한 뒤, 각자 모은 힌트로 자기 자물쇠를 엽니다. 탈출 실패자가 많으면 배신자 승리.</li>
+    <li>다 같이 <b>주제</b>를 하나 고릅니다. 동물, 음식, 가전제품처럼 <b>그림으로 헷갈리는 것</b>이라야 합니다.</li>
+    <li>각자 주제에 맞는 <b>단어를 2개씩</b> 부릅니다. 방장이 받아 적으면 그게 이번 판의 <b>단어판</b>이 됩니다. 자물쇠는 이 안에서 만들어집니다.</li>
+    <li>방장이 각자에게 <b>개인 링크</b>를 하나씩 보냅니다. 4라운드 임무가 전부 들어 있어서 이후엔 다시 보낼 필요가 없습니다.</li>
+    <li><b>밤</b> — 링크를 열면 "누구에게 무슨 단어를 그려야 하는지"가 뜹니다. 20초 안에 그려서 <b>받는 사람에게 직접 카톡으로</b> 보냅니다.</li>
+    <li><b>낮</b> — 다 같이 떠듭니다. "나는 이걸 그렸는데" "난 저걸로 봤는데" 를 맞춰보며 어긋난 구간을 찾습니다.</li>
+    <li><b>투표</b> — 한 명을 독방으로 보냅니다. 지목된 사람은 다음 라운드에 그리지도 받지도 못하고, 두 번 가면 탈락합니다.</li>
+    <li>이걸 <b>4번</b> 반복한 뒤, 각자 모은 그림으로 자기 자물쇠 단어 4개를 맞힙니다. 탈출 실패자가 많으면 배신자 승리.</li>
   </ol>
 
   <h2 id="rules">규칙</h2>
   <ol class="steps">
-    <li><b>자물쇠는 네 칸.</b> 각 칸은 색 4가지(빨강·파랑·초록·노랑) × 모양 4가지(원·네모·세모·별) 중 하나입니다.</li>
-    <li><b>한 자물쇠 안에서 색과 모양은 겹치지 않습니다.</b> 그래서 받은 힌트에 겹치는 게 있으면 <b>넷 중 하나는 가짜</b>라는 걸 알 수 있습니다. 다만 어느 것인지는 모릅니다.</li>
-    <li><b>매 라운드 담당이 새로 섞입니다.</b> 내 힌트 네 개는 각각 다른 사람에게서 옵니다.</li>
-    <li><b>배신자는 전달할 때 값을 바꿔서 보낼 수 있습니다.</b> 게임당 두 번. 보낸 사람도 받은 사람도 조작 사실을 모릅니다.</li>
-    <li><b>독방에 두 번 가면 탈락</b>하고, 탈출 실패로 집계됩니다. 애먼 사람을 보내면 참가자 팀이 스스로 손해를 봅니다.</li>
-    <li><b>승패</b> — 7~8인은 탈출 실패 3명 이상이면 배신자 승리, 5~6인은 2명 이상이면 배신자 승리.</li>
+    <li><b>자물쇠는 단어 4개.</b> 순서까지 맞아야 열립니다. 정답은 전부 <b>단어판 안에</b> 있습니다.</li>
+    <li><b>자기가 낸 단어는 자기 자물쇠에 들어가지 않습니다.</b></li>
+    <li><b>한 자물쇠에 같은 사람이 낸 단어가 두 개 들어가지 않습니다.</b> 그래서 내가 추측한 넷 중 둘이 같은 사람 단어면 <b>하나는 가짜</b>라는 걸 알 수 있습니다. 어느 쪽인지는 모릅니다.</li>
+    <li><b>매 라운드 담당이 새로 섞입니다.</b> 내 힌트 넷은 각각 다른 사람이 그려서 보냅니다.</li>
+    <li><b>배신자는 일부러 다른 단어를 그립니다.</b> 횟수 제한 없습니다. 대신 너무 자주 하면 걸립니다.</li>
+    <li><b>배신자에게는 알리바이가 있습니다</b> — "나는 제대로 그렸는데 네가 잘못 본 거야." 주제가 같아서 다들 비슷하게 생겼기 때문에, 못 그린 척하는 게 최고의 변명입니다. 이걸 가려내는 게 이 게임입니다.</li>
+    <li><b>승패</b> — 7~8인은 탈출 실패 3명 이상이면 배신자 승리, 5~6인은 2명 이상이면 배신자 승리. 탈락자도 실패로 셉니다.</li>
   </ol>
+
+  <div class="warnbox">
+    <b>그림 그리는 도구는 일부러 형편없습니다.</b>
+    검정 한 색, 굵기 하나, 지우개 없음, 20초. 도구가 좋으면 다들 잘 그려서 하나도 안 웃깁니다.
+    못 그리는 게 이 게임의 콘텐츠입니다.
+  </div>
 
   <a class="back" href="/">← TINYPLAY 메인으로</a>
 
-  <footer>ROOM 8 · PLAYTEST v0.1 · TINYPLAY.KR</footer>
+  <footer>ROOM 8 · PLAYTEST v0.2 · TINYPLAY.KR</footer>
 </div>
 </body>
 </html>
