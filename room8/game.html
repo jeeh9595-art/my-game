@@ -138,12 +138,23 @@
       <button id="btnGal">받은 그림</button>
       <button id="btnMic">마이크 끔</button>
       <button id="btnHostNext" class="hidden">다음 단계</button>
+      <div id="sizeBox" style="background:rgba(13,16,21,.82);border:1px solid #2a323b;
+           border-radius:8px;padding:7px 9px;text-align:right;">
+        <div style="font-size:10.5px;color:#7d8894;letter-spacing:1px;margin-bottom:5px;">캐릭터 크기</div>
+        <div style="display:flex;gap:5px;justify-content:flex-end;align-items:center;">
+          <button id="szDn" style="padding:4px 10px;font-size:15px;line-height:1;">−</button>
+          <button id="szUp" style="padding:4px 10px;font-size:15px;line-height:1;">＋</button>
+          <button id="szRs" style="padding:4px 8px;font-size:11px;line-height:1;">초기화</button>
+        </div>
+        <div id="szVal" style="font-size:11px;color:#45c2b7;margin-top:5px;
+             font-variant-numeric:tabular-nums;">-</div>
+        <div id="szInfo" style="font-size:9.5px;color:#5f6a76;margin-top:2px;"></div>
+      </div>
     </div>
   </div>
   <div id="where"></div>
   <div id="hint"></div>
-  <div id="dbg" style="position:absolute;bottom:6px;left:0;right:0;text-align:center;
-       font-size:11px;color:#6f7a86;"></div>
+
   <div id="stick"><i></i></div>
   <div id="flash"></div>
 </div>
@@ -529,7 +540,7 @@ var CHAR_HEIGHT=1.55;             // 이 키에 맞춰 자동으로 크기를 �
 /* 캐릭터 배율을 직접 조절한다. [ 줄이기 · ] 키우기 · \\ 초기화 */
 function setCharScale(v){
   CHAR.userK=Math.max(0.01,Math.min(6,v));
-  try{ localStorage.setItem("room8_charK",String(CHAR.userK)); }catch(e){}
+  try{ localStorage.setItem("room8_charK2",String(CHAR.userK)); }catch(e){}
   applyCharScale();
 }
 function applyCharScale(){
@@ -541,7 +552,7 @@ function applyCharScale(){
   });
 }
 (function(){
-  try{ var v=parseFloat(localStorage.getItem("room8_charK")); if(v>0) CHAR.userK=v; }catch(e){}
+  try{ var v=parseFloat(localStorage.getItem("room8_charK2")); if(v>0) CHAR.userK=v; }catch(e){}
 })();
 
 function measureChar(root){
@@ -596,7 +607,7 @@ function loadCharacter(){
       });
       CHAR.meshK=meshK;
       CHAR.boneH=m.h;
-      CHAR.scale=m.scale/meshK;
+      CHAR.scale=m.scale;     // 뼈로 잰 값을 그대로 쓴다
       CHAR.yOff=m.yOff;
       var hcHip=hipsY(CHAR.proto);
 
@@ -646,7 +657,8 @@ function makeSkinnedAvatar(name,slot){
 
   // 재질을 하나로 덮어써서 사람마다 색만 다르게
   var mat=new THREE.MeshStandardMaterial({color:col,roughness:0.72,metalness:0.0,
-    transparent:false,opacity:1,side:THREE.FrontSide,depthWrite:true});
+    transparent:false,opacity:1,side:THREE.DoubleSide,depthWrite:true,
+    emissive:new THREE.Color(col).multiplyScalar(0.16)});
   model.visible=true;
   model.traverse(function(o){
     if(o.isMesh||o.isSkinnedMesh){
@@ -1385,6 +1397,9 @@ $("btnEnter").onclick=function(){
 
 /* ============ 페이즈 진행 (방장) ============ */
 $("btnHostNext").onclick=function(){ advance(); };
+$("szDn").onclick=function(){ setCharScale(CHAR.userK*0.85); };
+$("szUp").onclick=function(){ setCharScale(CHAR.userK*1.18); };
+$("szRs").onclick=function(){ setCharScale(1); };
 
 function advance(){
   if(NET.mode!=="host") return;
@@ -1535,13 +1550,10 @@ function renderHUD(){
     } else if(nearestObj()) act="E — 줍기";
   }
   $("hint").textContent=act||hint||"WASD 이동 · Shift 달리기 · Space 점프 · E 줍기 · 좌클릭 펀치/던지기 · C 앉기 · V 인사 · B 춤";
-  var dbg=$("dbg");
-  if(dbg){
-    dbg.textContent="모델 배율 "+(CHAR.scale*CHAR.userK).toFixed(4)+
-      "  (기본 "+CHAR.scale.toFixed(4)+" × 내조절 "+CHAR.userK.toFixed(3)+")"+
-      "  · 뼈높이 "+(CHAR.boneH||0).toFixed(3)+" · 메시배율 "+(CHAR.meshK||1).toFixed(2)+
-      "   [ 줄이기 · ] 키우기 · \\ 초기화";
-  }
+  var sv=$("szVal"), si=$("szInfo");
+  if(sv) sv.textContent="배율 "+(CHAR.scale*CHAR.userK).toFixed(3);
+  if(si) si.textContent="기본 "+CHAR.scale.toFixed(3)+" × "+CHAR.userK.toFixed(2)+
+    " · 뼈 "+(CHAR.boneH||0).toFixed(2)+" · 메시 "+(CHAR.meshK||1).toFixed(1);
 
   $("btnBoard").classList.toggle("hidden",!(PUB.board&&PUB.board.length));
   $("btnGal").classList.toggle("hidden",!(PRIV&&PRIV.recv&&PRIV.recv.length));
