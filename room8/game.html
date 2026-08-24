@@ -521,7 +521,26 @@ function limb(parent,len,rad,mat,x,y,z){
 var CHAR={state:"loading",proto:null,clips:{},scale:1,yOff:0};
 var CHAR_FILE="char/hc.glb";      // 외형
 var ANIM_FILE="char/Xbot.glb";    // 동작 제공용
-var CHAR_HEIGHT=1.72;             // 이 키에 맞춰 자동으로 크기를 맞춘다
+var CHAR_HEIGHT=1.55;             // 이 키에 맞춰 자동으로 크기를 맞춘다
+
+/* 머리끝 뼈와 발 뼈의 실제 월드 높이로 키를 잰다 */
+function measureChar(root){
+  var def={scale:1,yOff:0};
+  try{
+    root.updateMatrixWorld(true);
+    var top=root.getObjectByName("mixamorig:HeadTop_End")||root.getObjectByName("mixamorig:Head");
+    var toe=root.getObjectByName("mixamorig:LeftToeBase")||root.getObjectByName("mixamorig:LeftFoot");
+    if(!top||!toe) return def;
+    var v=new THREE.Vector3();
+    top.getWorldPosition(v); var ty=v.y;
+    toe.getWorldPosition(v); var by=v.y;
+    var h=ty-by;
+    if(!(h>0.1&&h<20)) return def;
+    var k=CHAR_HEIGHT/h;
+    if(!(k>0.05&&k<20)) return def;
+    return {scale:k,yOff:-by*k};
+  }catch(e){ return def; }
+}
 
 function hipsY(root){
   var h=root.getObjectByName("mixamorig:Hips");
@@ -548,13 +567,9 @@ function loadCharacter(){
     L.load(CHAR_FILE,function(g1){
       CHAR.proto=g1.scene;
 
-      // 실제 키를 재서 세계 크기에 맞춘다
-      var box=new THREE.Box3().setFromObject(CHAR.proto);
-      var h=box.max.y-box.min.y;
-      if(h>0.05&&h<50){
-        CHAR.scale=Math.max(0.2,Math.min(10,CHAR_HEIGHT/h));
-        CHAR.yOff=-box.min.y*CHAR.scale;
-      }
+      // 스킨 메시는 바운딩 박스가 의미 없다. 뼈 위치로 잰다.
+      var m=measureChar(CHAR.proto);
+      CHAR.scale=m.scale; CHAR.yOff=m.yOff;
       var hcHip=hipsY(CHAR.proto);
 
       L.load(ANIM_FILE,function(g2){
@@ -602,10 +617,13 @@ function makeSkinnedAvatar(name,slot){
   g.add(model);
 
   // 재질을 하나로 덮어써서 사람마다 색만 다르게
-  var mat=new THREE.MeshStandardMaterial({color:col,roughness:0.72,metalness:0.0});
+  var mat=new THREE.MeshStandardMaterial({color:col,roughness:0.72,metalness:0.0,
+    transparent:false,opacity:1,side:THREE.FrontSide,depthWrite:true});
+  model.visible=true;
   model.traverse(function(o){
     if(o.isMesh||o.isSkinnedMesh){
-      o.material=mat; o.castShadow=true; o.frustumCulled=false;
+      o.material=mat; o.castShadow=true; o.frustumCulled=false; o.visible=true;
+      o.renderOrder=0;
     }
   });
 
