@@ -555,6 +555,24 @@ function applyCharScale(){
   try{ var v=parseFloat(localStorage.getItem("room8_charK2")); if(v>0) CHAR.userK=v; }catch(e){}
 })();
 
+/* glTF 규격상 스킨 메시 노드의 변환은 무시해야 한다.
+   그런데 GLTFLoader 는 그 행렬을 바인드 행렬로 써버려서,
+   노드에 스케일이 걸린 모델은 뼈 간격이 그 배수만큼 짜부라진다.
+   노드 변환을 지우고 바인드 행렬을 단위행렬로 다시 잡는다. */
+function fixSkinBind(root){
+  if(!root) return;
+  root.traverse(function(o){
+    if(!o.isSkinnedMesh) return;
+    o.position.set(0,0,0);
+    o.quaternion.set(0,0,0,1);
+    o.scale.set(1,1,1);
+    o.updateMatrix();
+    o.updateMatrixWorld(true);
+    try{ o.bind(o.skeleton,new THREE.Matrix4()); }catch(e){}
+  });
+  root.updateMatrixWorld(true);
+}
+
 function measureChar(root){
   var def={scale:1,yOff:0};
   try{
@@ -597,6 +615,7 @@ function loadCharacter(){
   try{
     L.load(CHAR_FILE,function(g1){
       CHAR.proto=g1.scene;
+      fixSkinBind(CHAR.proto);
 
       // 스킨 메시는 바운딩 박스가 의미 없다. 뼈 위치로 잰다.
       var m=measureChar(CHAR.proto);
@@ -651,6 +670,7 @@ function makeSkinnedAvatar(name,slot){
   var col=ROOM_COLORS[slot%8];
   var g=new THREE.Group();
   var model=THREE.SkeletonUtils.clone(CHAR.proto);
+  fixSkinBind(model);
   model.scale.setScalar(CHAR.scale*CHAR.userK);
   model.position.y=CHAR.yOff*CHAR.userK;
   g.add(model);
